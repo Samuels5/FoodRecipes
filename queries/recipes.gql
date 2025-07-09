@@ -3,6 +3,12 @@ query GetAllRecipes {
     id
     title
     description
+    prep_time_minutes
+    created_at
+    category {
+      id
+      name
+    }
     recipe_images(where: {is_featured: {_eq: true}}, limit: 1) {
       url
     }

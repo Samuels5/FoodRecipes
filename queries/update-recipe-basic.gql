@@ -2,18 +2,24 @@ mutation UpdateRecipeBasic(
   $id: uuid!
   $title: String!
   $description: String!
+  $category_id: uuid
+  $prep_time_minutes: Int
 ) {
   update_recipes_by_pk(
     pk_columns: { id: $id }
     _set: {
       title: $title
       description: $description
+      category_id: $category_id
+      prep_time_minutes: $prep_time_minutes
       updated_at: "now()"
     }
   ) {
     id
     title
     description
+    category_id
+    prep_time_minutes
     updated_at
   }
 }

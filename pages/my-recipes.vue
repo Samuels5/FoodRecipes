@@ -2,12 +2,28 @@
   <div class="container mx-auto px-4 py-8">
     <div class="flex justify-between items-center mb-6">
       <h1 class="text-3xl font-bold">My Recipes</h1>
-      <NuxtLink
-        to="/create-recipe"
-        class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
-      >
-        Create New Recipe
-      </NuxtLink>
+      <div class="flex gap-4 items-center">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Sort by</label>
+          <select
+            v-model="sortBy"
+            class="border border-gray-300 rounded-md shadow-sm p-2"
+          >
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+            <option value="title">Title A-Z</option>
+            <option value="title_desc">Title Z-A</option>
+            <option value="prep_time">Prep Time (Shortest)</option>
+            <option value="prep_time_desc">Prep Time (Longest)</option>
+          </select>
+        </div>
+        <NuxtLink
+          to="/create-recipe"
+          class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 mt-6"
+        >
+          Create New Recipe
+        </NuxtLink>
+      </div>
     </div>
 
     <div v-if="pending" class="text-center py-8">
@@ -30,7 +46,7 @@
 
     <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <div
-        v-for="recipe in data.recipes"
+        v-for="recipe in sortedRecipes"
         :key="recipe.id"
         class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200"
       >
@@ -42,7 +58,12 @@
         <div class="p-6">
           <h3 class="text-xl font-semibold mb-2">{{ recipe.title }}</h3>
           <p class="text-gray-600 mb-2 line-clamp-2">{{ recipe.description }}</p>
-          <p class="text-sm text-gray-500 mb-2">Category: {{ recipe.category?.name || 'Uncategorized' }}</p>
+          <div class="flex justify-between items-center text-sm text-gray-500 mb-2">
+            <span>Category: {{ recipe.category?.name || 'Uncategorized' }}</span>
+            <span v-if="recipe.prep_time_minutes" class="bg-orange-100 text-orange-800 px-2 py-1 rounded">
+              {{ recipe.prep_time_minutes }}min
+            </span>
+          </div>
           <div class="mb-2">
             <strong>Ingredients:</strong>
             <ul class="list-disc list-inside">
@@ -60,6 +81,12 @@
             </ol>
           </div>
           <div class="flex gap-2 mt-4">
+            <NuxtLink
+              :to="`/recipe/${recipe.id}`"
+              class="text-green-500 hover:text-green-700 px-3 py-1 rounded border border-green-500 hover:bg-green-50"
+            >
+              View
+            </NuxtLink>
             <button
               class="text-blue-500 hover:text-blue-700 px-3 py-1 rounded border border-blue-500 hover:bg-blue-50"
               @click="startEdit(recipe)"
@@ -109,6 +136,28 @@
             class="w-full border rounded px-3 py-2"
             required
           ></textarea>
+        </div>
+        <div class="mb-4">
+          <label class="block mb-1 font-medium">Category</label>
+          <select
+            v-model="editForm.category_id"
+            class="w-full border rounded px-3 py-2"
+          >
+            <option value="">Select a category (optional)</option>
+            <option v-for="category in categories" :key="category.id" :value="category.id">
+              {{ category.name }}
+            </option>
+          </select>
+        </div>
+        <div class="mb-4">
+          <label class="block mb-1 font-medium">Prep Time (minutes)</label>
+          <input
+            v-model="editForm.prep_time_minutes"
+            type="number"
+            min="1"
+            class="w-full border rounded px-3 py-2"
+            placeholder="e.g., 30"
+          />
         </div>
         <div class="mb-4">
           <label class="block mb-1 font-medium">Image URL</label>
@@ -211,6 +260,7 @@ import { useQuery, useMutation } from "@vue/apollo-composable";
 import GetMyRecipesQuery from "~/queries/my-recipes.gql";
 import DeleteRecipeMutation from "~/queries/delete-recipe.gql";
 import UpdateRecipeMutation from "~/queries/update-recipe-basic.gql";
+import GetCategoriesQuery from "~/queries/categories.gql";
 
 definePageMeta({
   middleware: "auth",
@@ -232,6 +282,42 @@ const {
   refetch,
 } = useQuery(GetMyRecipesQuery, {
   userId: userId,
+});
+
+// Fetch categories for dropdown
+const { result: categoriesData } = useQuery(GetCategoriesQuery);
+const categories = computed(() => categoriesData.value?.categories || []);
+
+// Sorting functionality
+const sortBy = ref('newest');
+
+const sortedRecipes = computed(() => {
+  if (!data.value?.recipes) return [];
+  
+  const recipes = [...data.value.recipes];
+  
+  return recipes.sort((a, b) => {
+    switch (sortBy.value) {
+      case 'newest':
+        return new Date(b.created_at) - new Date(a.created_at);
+      case 'oldest':
+        return new Date(a.created_at) - new Date(b.created_at);
+      case 'title':
+        return a.title.localeCompare(b.title);
+      case 'title_desc':
+        return b.title.localeCompare(a.title);
+      case 'prep_time':
+        const aTime = a.prep_time_minutes || 999999;
+        const bTime = b.prep_time_minutes || 999999;
+        return aTime - bTime;
+      case 'prep_time_desc':
+        const aTimeDesc = a.prep_time_minutes || 0;
+        const bTimeDesc = b.prep_time_minutes || 0;
+        return bTimeDesc - aTimeDesc;
+      default:
+        return 0;
+    }
+  });
 });
 
 // Delete functionality
@@ -260,6 +346,8 @@ const editForm = ref({
   id: null,
   title: "",
   description: "",
+  category_id: "",
+  prep_time_minutes: null,
   image_url: "",
   ingredients: [],
   steps: [],
@@ -293,6 +381,8 @@ function startEdit(recipe) {
     id: recipe.id,
     title: recipe.title || "",
     description: recipe.description || "",
+    category_id: recipe.category?.id || "",
+    prep_time_minutes: recipe.prep_time_minutes || null,
     image_url: recipe.recipe_images[0]?.url || "",
     ingredients: recipe.recipe_ingredients.map(i => ({ ...i })),
     steps: recipe.recipe_steps.map(s => ({ ...s })),
@@ -307,6 +397,8 @@ function closeEditModal() {
     id: null,
     title: "",
     description: "",
+    category_id: "",
+    prep_time_minutes: null,
     image_url: "",
     ingredients: [],
     steps: [],
@@ -327,6 +419,8 @@ async function submitEdit() {
       id: recipeId,
       title: editForm.value.title,
       description: editForm.value.description,
+      category_id: editForm.value.category_id || null,
+      prep_time_minutes: editForm.value.prep_time_minutes || null,
     });
 
     // 2. Delete existing ingredients and steps, then recreate them

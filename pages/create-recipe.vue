@@ -37,6 +37,45 @@
 
       <div>
         <label
+          for="category_id"
+          class="block text-sm font-medium text-gray-700 mb-2"
+        >
+          Category
+        </label>
+        <Field
+          name="category_id"
+          as="select"
+          id="category_id"
+          class="w-full border border-gray-300 rounded-md shadow-sm p-3"
+        >
+          <option value="">Select a category (optional)</option>
+          <option v-for="category in categories" :key="category.id" :value="category.id">
+            {{ category.name }}
+          </option>
+        </Field>
+        <ErrorMessage name="category_id" class="text-red-500 text-sm mt-1" />
+      </div>
+
+      <div>
+        <label
+          for="prep_time_minutes"
+          class="block text-sm font-medium text-gray-700 mb-2"
+        >
+          Prep Time (minutes)
+        </label>
+        <Field
+          name="prep_time_minutes"
+          type="number"
+          id="prep_time_minutes"
+          min="1"
+          class="w-full border border-gray-300 rounded-md shadow-sm p-3"
+          placeholder="e.g., 30"
+        />
+        <ErrorMessage name="prep_time_minutes" class="text-red-500 text-sm mt-1" />
+      </div>
+
+      <div>
+        <label
           for="image_url"
           class="block text-sm font-medium text-gray-700 mb-2"
         >
@@ -142,8 +181,9 @@
 <script setup>
 import { Form, Field, ErrorMessage } from "vee-validate";
 import * as yup from "yup";
-import { useMutation } from "@vue/apollo-composable";
+import { useMutation, useQuery } from "@vue/apollo-composable";
 import CreateRecipeMutation from "~/queries/create-recipe.gql";
+import GetCategoriesQuery from "~/queries/categories.gql";
 
 definePageMeta({
   middleware: "auth",
@@ -153,11 +193,16 @@ const schema = yup.object({
   title: yup.string().required("Recipe title is required"),
   description: yup.string().required("Description is required"),
   image_url: yup.string().url("Must be a valid URL").optional(),
+  prep_time_minutes: yup.number().positive("Must be a positive number").optional(),
 });
 
 const router = useRouter();
 const { mutate: createRecipe } = useMutation(CreateRecipeMutation);
 const { getUserId } = useAuth();
+
+// Fetch categories for dropdown
+const { result: categoriesData } = useQuery(GetCategoriesQuery);
+const categories = computed(() => categoriesData.value?.categories || []);
 
 // Dynamic ingredients and steps
 const ingredients = ref([{ name: '', quantity: '' }]);
@@ -212,6 +257,8 @@ async function handleSubmit(values) {
       title: values.title,
       description: values.description,
       user_id: userId,
+      category_id: values.category_id || null,
+      prep_time_minutes: values.prep_time_minutes || null,
     };
 
     const recipeResult = await createRecipe({

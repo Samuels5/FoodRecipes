@@ -1,26 +1,31 @@
-query GetMyRecipes($userId: uuid!) {
-  recipes(where: { user_id: { _eq: $userId } }) {
+query GetRecipeById($id: uuid!) {
+  recipes_by_pk(id: $id) {
     id
     title
     description
     prep_time_minutes
     created_at
+    updated_at
     category {
       name
     }
-    recipe_images(where: { is_featured: { _eq: true } }, limit: 1) {
+    user {
+      username
+    }
+    recipe_images {
+      id
       url
+      is_featured
     }
     recipe_ingredients {
       id
       name
       quantity
     }
-    recipe_steps(order_by: { step_number: asc }) {
+    recipe_steps(order_by: {step_number: asc}) {
       id
       step_number
       description
     }
-    user_id
   }
 }
