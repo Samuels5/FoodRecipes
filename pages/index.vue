@@ -6,7 +6,7 @@
     
     <!-- Search and Filter Section -->
     <div class="mb-6 bg-gray-50 p-4 rounded-lg">
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Search Recipes</label>
           <input
@@ -38,6 +38,21 @@
             <option v-for="creator in uniqueCreators" :key="creator.id" :value="creator.id">
               {{ creator.username }}
             </option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Filter by Prep Time</label>
+          <select
+            v-model="selectedPrepTime"
+            class="w-full border border-gray-300 rounded-md shadow-sm p-2"
+          >
+            <option value="">All Prep Times</option>
+            <option value="quick">Quick (≤ 15 min)</option>
+            <option value="moderate">Moderate (16-30 min)</option>
+            <option value="medium">Medium (31-60 min)</option>
+            <option value="long">Long (61-120 min)</option>
+            <option value="extended">Extended (> 120 min)</option>
+            <option value="no-time">No time specified</option>
           </select>
         </div>
         <div>
@@ -117,6 +132,8 @@ const categories = computed(() => categoriesData.value?.categories || []);
 // Reactive search and filter
 const searchTerm = ref('');
 const selectedCategory = ref('');
+// const selectedCreator = ref('');
+const selectedPrepTime = ref('');
 const sortBy = ref('newest');
 
 // Extract unique creators for the filter dropdown
@@ -160,6 +177,30 @@ const filteredRecipes = computed(() => {
     recipes = recipes.filter(recipe => recipe.user_id === selectedCreator.value);
   }
   
+  // Filter by prep time
+  if (selectedPrepTime.value) {
+    recipes = recipes.filter(recipe => {
+      const prepTime = recipe.prep_time_minutes;
+      
+      switch (selectedPrepTime.value) {
+        case 'quick':
+          return prepTime && prepTime <= 15;
+        case 'moderate':
+          return prepTime && prepTime >= 16 && prepTime <= 30;
+        case 'medium':
+          return prepTime && prepTime >= 31 && prepTime <= 60;
+        case 'long':
+          return prepTime && prepTime >= 61 && prepTime <= 120;
+        case 'extended':
+          return prepTime && prepTime > 120;
+        case 'no-time':
+          return !prepTime || prepTime === null;
+        default:
+          return true;
+      }
+    });
+  }
+  
   // Sort recipes
   recipes = [...recipes].sort((a, b) => {
     switch (sortBy.value) {
@@ -199,6 +240,7 @@ function clearFilters() {
   searchTerm.value = '';
   selectedCategory.value = '';
   selectedCreator.value = '';
+  selectedPrepTime.value = '';
   sortBy.value = 'newest';
 }
 </script>
