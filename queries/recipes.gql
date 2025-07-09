@@ -1,0 +1,11 @@
+query GetAllRecipes {
+  recipes {
+    id
+    title
+    description
+    image_url
+    user {
+      username
+    }
+  }
+}

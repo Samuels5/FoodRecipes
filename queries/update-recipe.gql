@@ -1,0 +1,28 @@
+mutation UpdateRecipe(
+  $id: uuid!
+  $title: String!
+  $description: String!
+  $ingredients: jsonb!
+  $instructions: jsonb!
+  $image_url: String!
+) {
+  update_recipes_by_pk(
+    pk_columns: { id: $id }
+    _set: {
+      title: $title
+      description: $description
+      ingredients: $ingredients
+      instructions: $instructions
+      image_url: $image_url
+    }
+  ) {
+    id
+    title
+    description
+    ingredients
+    instructions
+    image_url
+    created_at
+    updated_at
+  }
+}

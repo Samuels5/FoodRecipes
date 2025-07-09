@@ -1,0 +1,11 @@
+query GetMyRecipes($userId: uuid!) {
+  recipes(where: { user_id: { _eq: $userId } }) {
+    id
+    title
+    description
+    ingredients
+    instructions
+    image_url
+    user_id
+  }
+}

@@ -1,0 +1,11 @@
+mutation CreateRecipe($object: recipes_insert_input!) {
+  insert_recipes_one(object: $object) {
+    id
+    title
+    description
+    ingredients
+    instructions
+    image_url
+    user_id
+  }
+}
