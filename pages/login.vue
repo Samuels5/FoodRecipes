@@ -38,10 +38,6 @@
   </div>
 </template>
 
-
-
-
-
 <script setup>
 import { Form, Field, ErrorMessage } from "vee-validate";
 import * as yup from "yup";
@@ -52,7 +48,7 @@ const schema = yup.object({
 });
 
 const router = useRouter();
-const authToken = useCookie("auth-token");
+const { login } = useAuth();
 
 async function handleSubmit(values) {
   console.log("Login form submitted with:", values);
@@ -70,8 +66,14 @@ async function handleSubmit(values) {
       console.error("Error submitting login form:", error.value);
       alert("Login failed. Please check your credentials.");
     } else {
+      console.log("Login response data:", data.value);
+
       if (data.value && data.value.token) {
-        authToken.value = data.value.token;
+        console.log("Login successful, logging user in with token:", data.value.token);
+        
+        // Use the login function from useAuth composable
+        login(data.value.token, data.value.user);
+
         alert("Login successful!");
         await router.push("/");
       } else {

@@ -27,6 +27,8 @@
 const { isAuthenticated, logout } = useAuth();
 const router = useRouter();
 
+console.log("Header: isAuthenticated =", isAuthenticated.value);
+
 const handleLogout = () => {
   logout();
   router.push("/");

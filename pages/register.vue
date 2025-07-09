@@ -55,6 +55,9 @@
 import { Form, Field, ErrorMessage } from "vee-validate";
 import * as yup from "yup";
 
+const { login } = useAuth();
+const router = useRouter();
+
 const schema = yup.object({
   username: yup
     .string()
@@ -84,7 +87,22 @@ async function handleSubmit(values) {
       alert("An error occurred. Please try again.");
     } else {
       console.log("Server response:", data.value);
-      alert("Registration successful!");
+      
+      // Check if we got a token back
+      if (data.value?.token) {
+        console.log("Registration successful, logging user in with token:", data.value.token);
+        
+        // Store the token and update authentication state
+        login(data.value.token, data.value.user);
+        
+        // Navigate to the home page or dashboard
+        await router.push('/');
+        
+        alert("Registration successful! You are now logged in.");
+      } else {
+        console.error("No token received from server");
+        alert("Registration successful, but could not log you in automatically. Please log in manually.");
+      }
     }
   } catch (e) {
     console.error("An unexpected error occurred:", e);
