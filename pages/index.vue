@@ -6,7 +6,7 @@
     
     <!-- Search and Filter Section -->
     <div class="mb-6 bg-gray-50 p-4 rounded-lg">
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Search Recipes</label>
           <input
@@ -16,6 +16,33 @@
             class="w-full border border-gray-300 rounded-md shadow-sm p-2"
           />
         </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Filter by Ingredients</label>
+          <input
+            v-model="ingredientFilter"
+            type="text"
+            placeholder="Search by ingredients..."
+            class="w-full border border-gray-300 rounded-md shadow-sm p-2"
+          />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Sort by</label>
+          <select
+            v-model="sortBy"
+            class="w-full border border-gray-300 rounded-md shadow-sm p-2"
+          >
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+            <option value="title">Title A-Z</option>
+            <option value="title_desc">Title Z-A</option>
+            <option value="prep_time">Prep Time (Shortest)</option>
+            <option value="prep_time_desc">Prep Time (Longest)</option>
+            <option value="creator">Creator A-Z</option>
+            <option value="creator_desc">Creator Z-A</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Filter by Category</label>
           <select
@@ -53,22 +80,6 @@
             <option value="long">Long (61-120 min)</option>
             <option value="extended">Extended (> 120 min)</option>
             <option value="no-time">No time specified</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Sort by</label>
-          <select
-            v-model="sortBy"
-            class="w-full border border-gray-300 rounded-md shadow-sm p-2"
-          >
-            <option value="newest">Newest First</option>
-            <option value="oldest">Oldest First</option>
-            <option value="title">Title A-Z</option>
-            <option value="title_desc">Title Z-A</option>
-            <option value="prep_time">Prep Time (Shortest)</option>
-            <option value="prep_time_desc">Prep Time (Longest)</option>
-            <option value="creator">Creator A-Z</option>
-            <option value="creator_desc">Creator Z-A</option>
           </select>
         </div>
       </div>
@@ -132,7 +143,7 @@ const categories = computed(() => categoriesData.value?.categories || []);
 // Reactive search and filter
 const searchTerm = ref('');
 const selectedCategory = ref('');
-// const selectedCreator = ref('');
+const ingredientFilter = ref('');
 const selectedPrepTime = ref('');
 const sortBy = ref('newest');
 
@@ -165,6 +176,23 @@ const filteredRecipes = computed(() => {
       recipe.title.toLowerCase().includes(searchTerm.value.toLowerCase()) ||
       recipe.description.toLowerCase().includes(searchTerm.value.toLowerCase())
     );
+  }
+  
+  // Filter by ingredients
+  if (ingredientFilter.value) {
+    recipes = recipes.filter(recipe => {
+      if (!recipe.recipe_ingredients || recipe.recipe_ingredients.length === 0) {
+        return false;
+      }
+      
+      const searchTerms = ingredientFilter.value.toLowerCase().split(',').map(term => term.trim());
+      
+      return searchTerms.every(searchTerm => 
+        recipe.recipe_ingredients.some(ingredient => 
+          ingredient.name.toLowerCase().includes(searchTerm)
+        )
+      );
+    });
   }
   
   // Filter by category
@@ -240,6 +268,7 @@ function clearFilters() {
   searchTerm.value = '';
   selectedCategory.value = '';
   selectedCreator.value = '';
+  ingredientFilter.value = '';
   selectedPrepTime.value = '';
   sortBy.value = 'newest';
 }
