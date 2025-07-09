@@ -6,7 +6,7 @@
     
     <!-- Search and Filter Section -->
     <div class="mb-6 bg-gray-50 p-4 rounded-lg">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Search Recipes</label>
           <input
@@ -29,6 +29,18 @@
           </select>
         </div>
         <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Filter by Creator</label>
+          <select
+            v-model="selectedCreator"
+            class="w-full border border-gray-300 rounded-md shadow-sm p-2"
+          >
+            <option value="">All Creators</option>
+            <option v-for="creator in uniqueCreators" :key="creator.id" :value="creator.id">
+              {{ creator.username }}
+            </option>
+          </select>
+        </div>
+        <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Sort by</label>
           <select
             v-model="sortBy"
@@ -40,15 +52,20 @@
             <option value="title_desc">Title Z-A</option>
             <option value="prep_time">Prep Time (Shortest)</option>
             <option value="prep_time_desc">Prep Time (Longest)</option>
+            <option value="creator">Creator A-Z</option>
+            <option value="creator_desc">Creator Z-A</option>
           </select>
         </div>
-        <div class="flex items-end">
-          <button
-            @click="clearFilters"
-            class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600"
-          >
-            Clear Filters
-          </button>
+      </div>
+      <div class="mt-4 flex gap-2">
+        <button
+          @click="clearFilters"
+          class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600"
+        >
+          Clear All Filters
+        </button>
+        <div class="text-sm text-gray-600 flex items-center">
+          Showing {{ filteredRecipes.length }} of {{ data?.recipes?.length || 0 }} recipes
         </div>
       </div>
     </div>
@@ -102,6 +119,24 @@ const searchTerm = ref('');
 const selectedCategory = ref('');
 const sortBy = ref('newest');
 
+// Extract unique creators for the filter dropdown
+const selectedCreator = ref('');
+const uniqueCreators = computed(() => {
+  if (!data.value?.recipes) return [];
+  
+  const creators = new Map();
+  data.value.recipes.forEach(recipe => {
+    if (recipe.user && recipe.user.username) {
+      creators.set(recipe.user_id, {
+        id: recipe.user_id,
+        username: recipe.user.username
+      });
+    }
+  });
+  
+  return Array.from(creators.values()).sort((a, b) => a.username.localeCompare(b.username));
+});
+
 const filteredRecipes = computed(() => {
   if (!data.value?.recipes) return [];
   
@@ -118,6 +153,11 @@ const filteredRecipes = computed(() => {
   // Filter by category
   if (selectedCategory.value) {
     recipes = recipes.filter(recipe => recipe.category?.id === selectedCategory.value);
+  }
+  
+  // Filter by creator
+  if (selectedCreator.value) {
+    recipes = recipes.filter(recipe => recipe.user_id === selectedCreator.value);
   }
   
   // Sort recipes
@@ -139,6 +179,14 @@ const filteredRecipes = computed(() => {
         const aTimeDesc = a.prep_time_minutes || 0;
         const bTimeDesc = b.prep_time_minutes || 0;
         return bTimeDesc - aTimeDesc;
+      case 'creator':
+        const aCreator = a.user?.username || 'zzz';
+        const bCreator = b.user?.username || 'zzz';
+        return aCreator.localeCompare(bCreator);
+      case 'creator_desc':
+        const aCreatorDesc = a.user?.username || '';
+        const bCreatorDesc = b.user?.username || '';
+        return bCreatorDesc.localeCompare(aCreatorDesc);
       default:
         return 0;
     }
@@ -150,6 +198,7 @@ const filteredRecipes = computed(() => {
 function clearFilters() {
   searchTerm.value = '';
   selectedCategory.value = '';
+  selectedCreator.value = '';
   sortBy.value = 'newest';
 }
 </script>

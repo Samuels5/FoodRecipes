@@ -34,7 +34,7 @@
       <p>Error loading recipes: {{ error.message }}</p>
     </div>
 
-    <div v-else-if="!data?.recipes?.length" class="text-center py-8">
+    <div v-else-if="!filteredRecipes?.length" class="text-center py-8">
       <p class="text-gray-500 mb-4">You haven't created any recipes yet.</p>
       <NuxtLink
         to="/create-recipe"
@@ -46,7 +46,7 @@
 
     <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <div
-        v-for="recipe in sortedRecipes"
+        v-for="recipe in filteredRecipes"
         :key="recipe.id"
         class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200"
       >
@@ -60,9 +60,11 @@
           <p class="text-gray-600 mb-2 line-clamp-2">{{ recipe.description }}</p>
           <div class="flex justify-between items-center text-sm text-gray-500 mb-2">
             <span>Category: {{ recipe.category?.name || 'Uncategorized' }}</span>
-            <span v-if="recipe.prep_time_minutes" class="bg-orange-100 text-orange-800 px-2 py-1 rounded">
-              {{ recipe.prep_time_minutes }}min
-            </span>
+            <div class="flex gap-2">
+              <span v-if="recipe.prep_time_minutes" class="bg-orange-100 text-orange-800 px-2 py-1 rounded">
+                {{ recipe.prep_time_minutes }}min
+              </span>
+            </div>
           </div>
           <div class="mb-2">
             <strong>Ingredients:</strong>
@@ -88,12 +90,14 @@
               View
             </NuxtLink>
             <button
+              v-if="recipe.user_id === userId"
               class="text-blue-500 hover:text-blue-700 px-3 py-1 rounded border border-blue-500 hover:bg-blue-50"
               @click="startEdit(recipe)"
             >
               Edit
             </button>
             <button
+              v-if="recipe.user_id === userId"
               class="text-red-500 hover:text-red-700 px-3 py-1 rounded border border-red-500 hover:bg-red-50"
               @click="confirmDelete(recipe)"
               :disabled="deletingId === recipe.id"
@@ -280,9 +284,7 @@ const {
   loading: pending,
   error,
   refetch,
-} = useQuery(GetMyRecipesQuery, {
-  userId: userId,
-});
+} = useQuery(GetMyRecipesQuery, { user_id: userId });
 
 // Fetch categories for dropdown
 const { result: categoriesData } = useQuery(GetCategoriesQuery);
@@ -291,9 +293,10 @@ const categories = computed(() => categoriesData.value?.categories || []);
 // Sorting functionality
 const sortBy = ref('newest');
 
-const sortedRecipes = computed(() => {
+const filteredRecipes = computed(() => {
   if (!data.value?.recipes) return [];
   
+  // Create a shallow copy of the array before sorting to avoid mutating the original
   const recipes = [...data.value.recipes];
   
   return recipes.sort((a, b) => {

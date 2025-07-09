@@ -1,5 +1,5 @@
-query GetMyRecipes($userId: uuid!) {
-  recipes(where: { user_id: { _eq: $userId } }) {
+query GetMyRecipes($user_id: uuid!) {
+  recipes(where: { user_id: { _eq: $user_id } }) {
     id
     title
     description
