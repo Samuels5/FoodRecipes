@@ -3,9 +3,7 @@ mutation CreateRecipe($object: recipes_insert_input!) {
     id
     title
     description
-    ingredients
-    instructions
-    image_url
     user_id
+    created_at
   }
 }

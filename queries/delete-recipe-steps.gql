@@ -1,0 +1,5 @@
+mutation DeleteRecipeSteps($recipe_id: uuid!) {
+  delete_recipe_steps(where: { recipe_id: { _eq: $recipe_id } }) {
+    affected_rows
+  }
+}

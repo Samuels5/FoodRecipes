@@ -1,0 +1,19 @@
+mutation UpdateRecipeBasic(
+  $id: uuid!
+  $title: String!
+  $description: String!
+) {
+  update_recipes_by_pk(
+    pk_columns: { id: $id }
+    _set: {
+      title: $title
+      description: $description
+      updated_at: "now()"
+    }
+  ) {
+    id
+    title
+    description
+    updated_at
+  }
+}

@@ -12,13 +12,9 @@
         class="border p-4 rounded"
       >
         <img
-          :src="recipe.image_url"
+          :src="recipe.recipe_images[0]?.url || 'https://via.placeholder.com/400x300?text=Recipe+Image'"
           alt="Recipe image"
           class="mb-2 w-full h-48 object-cover rounded"
-          @error="
-            $event.target.src =
-              'https://via.placeholder.com/400x300?text=Recipe+Image'
-          "
         />
         <h2 class="text-xl font-bold">{{ recipe.title }}</h2>
         <p>{{ recipe.description }}</p>

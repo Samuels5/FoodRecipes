@@ -3,9 +3,22 @@ query GetMyRecipes($userId: uuid!) {
     id
     title
     description
-    ingredients
-    instructions
-    image_url
+    category {
+      name
+    }
+    recipe_images(where: { is_featured: { _eq: true } }, limit: 1) {
+      url
+    }
+    recipe_ingredients {
+      id
+      name
+      quantity
+    }
+    recipe_steps(order_by: { step_number: asc }) {
+      id
+      step_number
+      description
+    }
     user_id
   }
 }

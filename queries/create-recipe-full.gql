@@ -1,0 +1,43 @@
+mutation CreateRecipeFull(
+  $recipe: recipes_insert_input!
+  $ingredients: [recipe_ingredients_insert_input!]!
+  $steps: [recipe_steps_insert_input!]!
+  $image: recipe_images_insert_input
+) {
+  # Insert the main recipe
+  insert_recipes_one(object: $recipe) {
+    id
+    title
+    description
+    user_id
+    created_at
+  }
+  
+  # Insert ingredients
+  insert_recipe_ingredients(objects: $ingredients) {
+    returning {
+      id
+      name
+      quantity
+      recipe_id
+    }
+  }
+  
+  # Insert steps
+  insert_recipe_steps(objects: $steps) {
+    returning {
+      id
+      step_number
+      description
+      recipe_id
+    }
+  }
+  
+  # Insert featured image if provided
+  insert_recipe_images_one(object: $image) {
+    id
+    url
+    is_featured
+    recipe_id
+  }
+}

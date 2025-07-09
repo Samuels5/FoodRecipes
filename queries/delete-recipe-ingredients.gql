@@ -1,0 +1,5 @@
+mutation DeleteRecipeIngredients($recipe_id: uuid!) {
+  delete_recipe_ingredients(where: { recipe_id: { _eq: $recipe_id } }) {
+    affected_rows
+  }
+}
