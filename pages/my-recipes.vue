@@ -4,7 +4,9 @@
       <h1 class="text-3xl font-bold">My Recipes</h1>
       <div class="flex gap-4 items-center">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Sort by</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1"
+            >Sort by</label
+          >
           <select
             v-model="sortBy"
             class="border border-gray-300 rounded-md shadow-sm p-2"
@@ -51,17 +53,29 @@
         class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200"
       >
         <img
-          :src="recipe.recipe_images[0]?.url || 'https://via.placeholder.com/400x300?text=Recipe+Image'"
+          :src="
+            recipe.recipe_images[0]?.url ||
+            'https://via.placeholder.com/400x300?text=Recipe+Image'
+          "
           :alt="recipe.title"
           class="w-full h-48 object-cover"
         />
         <div class="p-6">
           <h3 class="text-xl font-semibold mb-2">{{ recipe.title }}</h3>
-          <p class="text-gray-600 mb-2 line-clamp-2">{{ recipe.description }}</p>
-          <div class="flex justify-between items-center text-sm text-gray-500 mb-2">
-            <span>Category: {{ recipe.category?.name || 'Uncategorized' }}</span>
+          <p class="text-gray-600 mb-2 line-clamp-2">
+            {{ recipe.description }}
+          </p>
+          <div
+            class="flex justify-between items-center text-sm text-gray-500 mb-2"
+          >
+            <span
+              >Category: {{ recipe.category?.name || "Uncategorized" }}</span
+            >
             <div class="flex gap-2">
-              <span v-if="recipe.prep_time_minutes" class="bg-orange-100 text-orange-800 px-2 py-1 rounded">
+              <span
+                v-if="recipe.prep_time_minutes"
+                class="bg-orange-100 text-orange-800 px-2 py-1 rounded"
+              >
                 {{ recipe.prep_time_minutes }}min
               </span>
             </div>
@@ -69,8 +83,14 @@
           <div class="mb-2">
             <strong>Ingredients:</strong>
             <ul class="list-disc list-inside">
-              <li v-for="ingredient in recipe.recipe_ingredients" :key="ingredient.id">
-                {{ ingredient.name }}<span v-if="ingredient.quantity"> ({{ ingredient.quantity }})</span>
+              <li
+                v-for="ingredient in recipe.recipe_ingredients"
+                :key="ingredient.id"
+              >
+                {{ ingredient.name
+                }}<span v-if="ingredient.quantity">
+                  ({{ ingredient.quantity }})</span
+                >
               </li>
             </ul>
           </div>
@@ -116,7 +136,9 @@
     v-if="showEditModal"
     class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 overflow-y-auto py-8"
   >
-    <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative my-auto mx-auto max-h-[90vh] overflow-y-auto">
+    <div
+      class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative my-auto mx-auto max-h-[90vh] overflow-y-auto"
+    >
       <button
         class="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
         @click="closeEditModal"
@@ -148,7 +170,11 @@
             class="w-full border rounded px-3 py-2"
           >
             <option value="">Select a category (optional)</option>
-            <option v-for="category in categories" :key="category.id" :value="category.id">
+            <option
+              v-for="category in categories"
+              :key="category.id"
+              :value="category.id"
+            >
               {{ category.name }}
             </option>
           </select>
@@ -166,15 +192,15 @@
         <div class="mb-4">
           <label class="block mb-1 font-medium">Recipe Images</label>
           <div class="flex flex-wrap gap-2 mb-2">
-            <div 
-              v-for="(image, index) in editForm.images" 
-              :key="index" 
+            <div
+              v-for="(image, index) in editForm.images"
+              :key="index"
               class="relative border rounded-md p-1 w-20 h-20"
             >
-              <img 
-                v-if="image.url" 
-                :src="image.url" 
-                alt="Recipe image" 
+              <img
+                v-if="image.url"
+                :src="image.url"
+                alt="Recipe image"
                 class="w-full h-full object-cover rounded"
               />
               <div class="absolute top-1 right-1 flex gap-1">
@@ -182,11 +208,22 @@
                   type="button"
                   @click="setEditFeaturedImage(index)"
                   class="bg-yellow-100 hover:bg-yellow-200 p-1 rounded-full"
-                  :class="{'bg-yellow-400': image.is_featured}"
+                  :class="{ 'bg-yellow-400': image.is_featured }"
                   title="Set as featured image"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-3 w-3"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="{2}"
+                      d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                    />
                   </svg>
                 </button>
                 <button
@@ -195,29 +232,61 @@
                   class="bg-red-100 hover:bg-red-200 p-1 rounded-full"
                   title="Remove image"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-3 w-3"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="{2}"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </button>
               </div>
             </div>
-            
+
             <!-- Add new image -->
-            <div class="border border-dashed rounded-md p-1 w-20 h-20 flex items-center justify-center">
+            <div
+              class="border border-dashed rounded-md p-1 w-20 h-20 flex items-center justify-center"
+            >
               <div class="text-center">
-                <input
-                  v-model="newEditImageUrl"
-                  type="text"
-                  placeholder="URL"
-                  class="w-full border border-gray-300 rounded p-1 text-xs mb-1"
-                />
-                <button
-                  type="button"
-                  @click="addEditImage"
-                  class="text-xs bg-blue-500 text-white px-2 py-0.5 rounded hover:bg-blue-600"
-                >
-                  Add
-                </button>
+                <div class="flex flex-col gap-1">
+                  <input
+                    v-model="newEditImageUrl"
+                    type="text"
+                    placeholder="URL"
+                    class="w-full border border-gray-300 rounded p-1 text-xs mb-1"
+                  />
+                  <button
+                    type="button"
+                    @click="addEditImage"
+                    class="text-xs bg-blue-500 text-white px-2 py-0.5 rounded hover:bg-blue-600"
+                  >
+                    Add URL
+                  </button>
+                  <div class="relative w-full mt-1">
+                    <input
+                      type="file"
+                      id="upload-image"
+                      accept="image/jpeg,image/png,image/gif,image/webp,image/bmp"
+                      class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      @change="uploadImage"
+                      :disabled="editLoading"
+                    />
+                    <button
+                      type="button"
+                      class="text-xs bg-green-500 text-white px-2 py-0.5 rounded hover:bg-green-600 w-full"
+                      :class="{ 'opacity-50': editLoading }"
+                    >
+                      {{ editLoading ? "Uploading..." : "Upload" }}
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -225,11 +294,15 @@
             Please select a featured image for the recipe thumbnail.
           </div>
         </div>
-        
+
         <!-- Dynamic Ingredients -->
         <div class="mb-4">
           <label class="block mb-1 font-medium">Ingredients</label>
-          <div v-for="(ingredient, index) in editForm.ingredients" :key="index" class="flex gap-2 mb-2">
+          <div
+            v-for="(ingredient, index) in editForm.ingredients"
+            :key="index"
+            class="flex gap-2 mb-2"
+          >
             <input
               v-model="ingredient.name"
               placeholder="Ingredient name"
@@ -258,12 +331,18 @@
             Add Ingredient
           </button>
         </div>
-        
+
         <!-- Dynamic Steps -->
         <div class="mb-4">
           <label class="block mb-1 font-medium">Cooking Steps</label>
-          <div v-for="(step, index) in editForm.steps" :key="index" class="flex gap-2 mb-2">
-            <span class="flex items-center justify-center w-6 h-6 bg-gray-200 rounded-full text-xs">
+          <div
+            v-for="(step, index) in editForm.steps"
+            :key="index"
+            class="flex gap-2 mb-2"
+          >
+            <span
+              class="flex items-center justify-center w-6 h-6 bg-gray-200 rounded-full text-xs"
+            >
               {{ index + 1 }}
             </span>
             <textarea
@@ -320,6 +399,7 @@ import GetMyRecipesQuery from "~/queries/my-recipes.gql";
 import DeleteRecipeMutation from "~/queries/delete-recipe.gql";
 import UpdateRecipeMutation from "~/queries/update-recipe-basic.gql";
 import GetCategoriesQuery from "~/queries/categories.gql";
+import { useImageUpload } from "~/composables/useImageUpload";
 
 definePageMeta({
   middleware: "auth",
@@ -346,29 +426,29 @@ const { result: categoriesData } = useQuery(GetCategoriesQuery);
 const categories = computed(() => categoriesData.value?.categories || []);
 
 // Sorting functionality
-const sortBy = ref('newest');
+const sortBy = ref("newest");
 
 const filteredRecipes = computed(() => {
   if (!data.value?.recipes) return [];
-  
+
   // Create a shallow copy of the array before sorting to avoid mutating the original
   const recipes = [...data.value.recipes];
-  
+
   return recipes.sort((a, b) => {
     switch (sortBy.value) {
-      case 'newest':
+      case "newest":
         return new Date(b.created_at) - new Date(a.created_at);
-      case 'oldest':
+      case "oldest":
         return new Date(a.created_at) - new Date(b.created_at);
-      case 'title':
+      case "title":
         return a.title.localeCompare(b.title);
-      case 'title_desc':
+      case "title_desc":
         return b.title.localeCompare(a.title);
-      case 'prep_time':
+      case "prep_time":
         const aTime = a.prep_time_minutes || 999999;
         const bTime = b.prep_time_minutes || 999999;
         return aTime - bTime;
-      case 'prep_time_desc':
+      case "prep_time_desc":
         const aTimeDesc = a.prep_time_minutes || 0;
         const bTimeDesc = b.prep_time_minutes || 0;
         return bTimeDesc - aTimeDesc;
@@ -410,30 +490,33 @@ const editForm = ref({
   ingredients: [],
   steps: [],
 });
-const newEditImageUrl = ref('');
-const hasEditFeaturedImage = computed(() => editForm.value.images.some(img => img.is_featured));
+const newEditImageUrl = ref("");
+const hasEditFeaturedImage = computed(() =>
+  editForm.value.images.some((img) => img.is_featured)
+);
 const editLoading = ref(false);
 const editError = ref("");
 const { mutate: updateRecipeBasic } = useMutation(UpdateRecipeMutation);
+const { processImageFile } = useImageUpload();
 
 function addEditImage() {
   if (!newEditImageUrl.value.trim()) return;
-  
+
   // Add the new image
   const isFirstImage = editForm.value.images.length === 0;
   editForm.value.images.push({
     url: newEditImageUrl.value.trim(),
-    is_featured: isFirstImage // First image is automatically set as featured
+    is_featured: isFirstImage, // First image is automatically set as featured
   });
-  
+
   // Clear input
-  newEditImageUrl.value = '';
+  newEditImageUrl.value = "";
 }
 
 function removeEditImage(index) {
   const wasFeaturendImage = editForm.value.images[index].is_featured;
   editForm.value.images.splice(index, 1);
-  
+
   // If we removed the featured image and we still have other images, set the first one as featured
   if (wasFeaturendImage && editForm.value.images.length > 0) {
     editForm.value.images[0].is_featured = true;
@@ -442,13 +525,63 @@ function removeEditImage(index) {
 
 function setEditFeaturedImage(index) {
   // Unmark all images as featured
-  editForm.value.images.forEach(img => img.is_featured = false);
+  editForm.value.images.forEach((img) => (img.is_featured = false));
   // Mark the selected image as featured
   editForm.value.images[index].is_featured = true;
 }
 
+// File upload handler
+async function uploadImage(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  try {
+    // Show loading indicator
+    editLoading.value = true;
+
+    // Validate file mime type directly
+    if (!file.type.match(/image\/(jpeg|jpg|png|gif|webp|bmp)/i)) {
+      throw new Error(
+        "Invalid file type. Please select a JPG, PNG, GIF, WebP, or BMP image."
+      );
+    }
+
+    // Process the image (compress if needed and convert to base64)
+    const base64String = await processImageFile(file, {
+      maxWidth: 1200,
+      quality: 0.8,
+    });
+
+    // Check base64 string validity (very basic check)
+    if (
+      !base64String ||
+      typeof base64String !== "string" ||
+      !base64String.startsWith("data:image/")
+    ) {
+      throw new Error("Failed to process image. Please try another image.");
+    }
+
+    // For now, store the image as base64 data URL
+    // In a production environment, you would upload to a server/storage service
+    const isFirstImage = editForm.value.images.length === 0;
+    editForm.value.images.push({
+      url: base64String,
+      is_featured: isFirstImage, // First image is automatically set as featured
+    });
+
+    // Reset the file input
+    event.target.value = "";
+  } catch (error) {
+    console.error("Error uploading image:", error);
+    // Display the specific error message to the user
+    alert(error.message || "Failed to upload image. Please try again.");
+  } finally {
+    editLoading.value = false;
+  }
+}
+
 function addEditIngredient() {
-  editForm.value.ingredients.push({ name: '', quantity: '' });
+  editForm.value.ingredients.push({ name: "", quantity: "" });
 }
 
 function removeEditIngredient(index) {
@@ -458,7 +591,7 @@ function removeEditIngredient(index) {
 }
 
 function addEditStep() {
-  editForm.value.steps.push({ description: '' });
+  editForm.value.steps.push({ description: "" });
 }
 
 function removeEditStep(index) {
@@ -468,17 +601,18 @@ function removeEditStep(index) {
 }
 
 function startEdit(recipe) {
-  const images = recipe.recipe_images?.map(img => ({
-    id: img.id,
-    url: img.url,
-    is_featured: img.is_featured,
-  })) || [];
-  
+  const images =
+    recipe.recipe_images?.map((img) => ({
+      id: img.id,
+      url: img.url,
+      is_featured: img.is_featured,
+    })) || [];
+
   // If no images have is_featured=true but we have images, mark the first as featured
-  if (images.length > 0 && !images.some(img => img.is_featured)) {
+  if (images.length > 0 && !images.some((img) => img.is_featured)) {
     images[0].is_featured = true;
   }
-  
+
   editForm.value = {
     id: recipe.id,
     title: recipe.title || "",
@@ -486,8 +620,8 @@ function startEdit(recipe) {
     category_id: recipe.category?.id || "",
     prep_time_minutes: recipe.prep_time_minutes || null,
     images: images,
-    ingredients: recipe.recipe_ingredients.map(i => ({ ...i })),
-    steps: recipe.recipe_steps.map(s => ({ ...s })),
+    ingredients: recipe.recipe_ingredients.map((i) => ({ ...i })),
+    steps: recipe.recipe_steps.map((s) => ({ ...s })),
   };
   showEditModal.value = true;
   editError.value = "";
@@ -505,7 +639,7 @@ function closeEditModal() {
     ingredients: [],
     steps: [],
   };
-  newEditImageUrl.value = '';
+  newEditImageUrl.value = "";
   editError.value = "";
 }
 
@@ -516,7 +650,7 @@ async function submitEdit() {
   editError.value = "";
   try {
     const recipeId = editForm.value.id;
-    
+
     // 1. Update the recipe's main fields (title, description)
     await updateRecipeBasic({
       id: recipeId,
@@ -564,9 +698,11 @@ async function submitEdit() {
     });
 
     // 3. Insert new ingredients
-    const validIngredients = editForm.value.ingredients.filter(ing => ing.name.trim());
+    const validIngredients = editForm.value.ingredients.filter((ing) =>
+      ing.name.trim()
+    );
     if (validIngredients.length > 0) {
-      const ingredientsData = validIngredients.map(ingredient => ({
+      const ingredientsData = validIngredients.map((ingredient) => ({
         recipe_id: recipeId,
         name: ingredient.name.trim(),
         quantity: ingredient.quantity?.trim() || null,
@@ -594,7 +730,9 @@ async function submitEdit() {
     }
 
     // 4. Insert new steps
-    const validSteps = editForm.value.steps.filter(step => step.description.trim());
+    const validSteps = editForm.value.steps.filter((step) =>
+      step.description.trim()
+    );
     if (validSteps.length > 0) {
       const stepsData = validSteps.map((step, index) => ({
         recipe_id: recipeId,
@@ -626,9 +764,11 @@ async function submitEdit() {
     // 5. Handle recipe images
     // First validate that at least one image is marked as featured if we have images
     if (editForm.value.images.length > 0 && !hasEditFeaturedImage.value) {
-      throw new Error("Please select a featured image for the recipe thumbnail");
+      throw new Error(
+        "Please select a featured image for the recipe thumbnail"
+      );
     }
-    
+
     // Delete all existing images
     await $fetch("http://localhost:8080/v1/graphql", {
       method: "POST",
@@ -650,11 +790,17 @@ async function submitEdit() {
 
     // Insert new images if available
     if (editForm.value.images.length > 0) {
-      const imagesData = editForm.value.images.map(image => ({
-        recipe_id: recipeId,
-        url: image.url,
-        is_featured: image.is_featured,
-      }));
+      // In a production environment, you'd upload any file-based images to a server/storage service here
+      // For now, we're using the base64 data directly or the URL
+
+      const imagesData = editForm.value.images.map((image) => {
+        // Use the URL we already have (either original URL or base64 data URL from upload)
+        return {
+          recipe_id: recipeId,
+          url: image.url,
+          is_featured: image.is_featured,
+        };
+      });
 
       await $fetch("http://localhost:8080/v1/graphql", {
         method: "POST",
