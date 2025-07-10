@@ -10,7 +10,7 @@ query GetAllRecipes {
       id
       name
     }
-    recipe_images(where: {is_featured: {_eq: true}}, limit: 1) {
+    recipe_images(where: { is_featured: { _eq: true } }, limit: 1) {
       url
     }
     recipe_ingredients {
@@ -25,6 +25,11 @@ query GetAllRecipes {
     }
     user {
       username
+    }
+    recipe_likes_aggregate {
+      aggregate {
+        count
+      }
     }
   }
 }

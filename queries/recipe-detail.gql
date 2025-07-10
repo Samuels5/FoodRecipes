@@ -6,10 +6,12 @@ query GetRecipeById($id: uuid!) {
     prep_time_minutes
     created_at
     updated_at
+    user_id
     category {
       name
     }
     user {
+      id
       username
     }
     recipe_images {
@@ -22,10 +24,15 @@ query GetRecipeById($id: uuid!) {
       name
       quantity
     }
-    recipe_steps(order_by: {step_number: asc}) {
+    recipe_steps(order_by: { step_number: asc }) {
       id
       step_number
       description
+    }
+    recipe_likes_aggregate {
+      aggregate {
+        count
+      }
     }
   }
 }

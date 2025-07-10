@@ -126,6 +126,9 @@
             </span>
           </div>
         </div>
+        <div class="flex justify-between items-center text-sm">
+          <RecipeLikes :like-count="recipe.recipe_likes_aggregate?.aggregate?.count || 0" />
+        </div>
       </NuxtLink>
     </div>
   </div>
@@ -134,6 +137,7 @@
 <script setup>
 import GetAllRecipes from "~/queries/recipes.gql";
 import GetCategoriesQuery from "~/queries/categories.gql";
+import RecipeLikes from "~/components/RecipeLikes.vue";
 
 const { data, pending, error } = await useAsyncQuery(GetAllRecipes);
 const { data: categoriesData } = await useAsyncQuery(GetCategoriesQuery);

@@ -1,0 +1,39 @@
+# Like a recipe
+mutation LikeRecipe($recipe_id: uuid!, $user_id: uuid!) {
+  insert_recipe_likes_one(
+    object: { recipe_id: $recipe_id, user_id: $user_id }
+    on_conflict: {
+      constraint: recipe_likes_user_id_recipe_id_key
+      update_columns: []
+    }
+  ) {
+    id
+  }
+}
+
+# Unlike a recipe
+mutation UnlikeRecipe($recipe_id: uuid!, $user_id: uuid!) {
+  delete_recipe_likes(
+    where: { recipe_id: { _eq: $recipe_id }, user_id: { _eq: $user_id } }
+  ) {
+    affected_rows
+  }
+}
+
+# Check if user has liked a recipe
+query CheckUserLike($recipe_id: uuid!, $user_id: uuid!) {
+  recipe_likes(
+    where: { recipe_id: { _eq: $recipe_id }, user_id: { _eq: $user_id } }
+  ) {
+    id
+  }
+}
+
+# Get like count for a recipe
+query GetRecipeLikes($recipe_id: uuid!) {
+  recipe_likes_aggregate(where: { recipe_id: { _eq: $recipe_id } }) {
+    aggregate {
+      count
+    }
+  }
+}

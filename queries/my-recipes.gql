@@ -24,5 +24,10 @@ query GetMyRecipes($user_id: uuid!) {
       description
     }
     user_id
+    recipe_likes_aggregate {
+      aggregate {
+        count
+      }
+    }
   }
 }
