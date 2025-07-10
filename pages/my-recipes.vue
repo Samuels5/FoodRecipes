@@ -114,9 +114,9 @@
   <!-- Edit Modal -->
   <div
     v-if="showEditModal"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 overflow-y-auto py-8"
   >
-    <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative">
+    <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative my-auto mx-auto max-h-[90vh] overflow-y-auto">
       <button
         class="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
         @click="closeEditModal"
@@ -164,11 +164,66 @@
           />
         </div>
         <div class="mb-4">
-          <label class="block mb-1 font-medium">Image URL</label>
-          <input
-            v-model="editForm.image_url"
-            class="w-full border rounded px-3 py-2"
-          />
+          <label class="block mb-1 font-medium">Recipe Images</label>
+          <div class="flex flex-wrap gap-2 mb-2">
+            <div 
+              v-for="(image, index) in editForm.images" 
+              :key="index" 
+              class="relative border rounded-md p-1 w-20 h-20"
+            >
+              <img 
+                v-if="image.url" 
+                :src="image.url" 
+                alt="Recipe image" 
+                class="w-full h-full object-cover rounded"
+              />
+              <div class="absolute top-1 right-1 flex gap-1">
+                <button
+                  type="button"
+                  @click="setEditFeaturedImage(index)"
+                  class="bg-yellow-100 hover:bg-yellow-200 p-1 rounded-full"
+                  :class="{'bg-yellow-400': image.is_featured}"
+                  title="Set as featured image"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  @click="removeEditImage(index)"
+                  class="bg-red-100 hover:bg-red-200 p-1 rounded-full"
+                  title="Remove image"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            
+            <!-- Add new image -->
+            <div class="border border-dashed rounded-md p-1 w-20 h-20 flex items-center justify-center">
+              <div class="text-center">
+                <input
+                  v-model="newEditImageUrl"
+                  type="text"
+                  placeholder="URL"
+                  class="w-full border border-gray-300 rounded p-1 text-xs mb-1"
+                />
+                <button
+                  type="button"
+                  @click="addEditImage"
+                  class="text-xs bg-blue-500 text-white px-2 py-0.5 rounded hover:bg-blue-600"
+                >
+                  Add
+                </button>
+              </div>
+            </div>
+          </div>
+          <div v-if="!hasEditFeaturedImage" class="text-yellow-600 text-xs">
+            Please select a featured image for the recipe thumbnail.
+          </div>
         </div>
         
         <!-- Dynamic Ingredients -->
@@ -351,13 +406,46 @@ const editForm = ref({
   description: "",
   category_id: "",
   prep_time_minutes: null,
-  image_url: "",
+  images: [],
   ingredients: [],
   steps: [],
 });
+const newEditImageUrl = ref('');
+const hasEditFeaturedImage = computed(() => editForm.value.images.some(img => img.is_featured));
 const editLoading = ref(false);
 const editError = ref("");
 const { mutate: updateRecipeBasic } = useMutation(UpdateRecipeMutation);
+
+function addEditImage() {
+  if (!newEditImageUrl.value.trim()) return;
+  
+  // Add the new image
+  const isFirstImage = editForm.value.images.length === 0;
+  editForm.value.images.push({
+    url: newEditImageUrl.value.trim(),
+    is_featured: isFirstImage // First image is automatically set as featured
+  });
+  
+  // Clear input
+  newEditImageUrl.value = '';
+}
+
+function removeEditImage(index) {
+  const wasFeaturendImage = editForm.value.images[index].is_featured;
+  editForm.value.images.splice(index, 1);
+  
+  // If we removed the featured image and we still have other images, set the first one as featured
+  if (wasFeaturendImage && editForm.value.images.length > 0) {
+    editForm.value.images[0].is_featured = true;
+  }
+}
+
+function setEditFeaturedImage(index) {
+  // Unmark all images as featured
+  editForm.value.images.forEach(img => img.is_featured = false);
+  // Mark the selected image as featured
+  editForm.value.images[index].is_featured = true;
+}
 
 function addEditIngredient() {
   editForm.value.ingredients.push({ name: '', quantity: '' });
@@ -380,13 +468,24 @@ function removeEditStep(index) {
 }
 
 function startEdit(recipe) {
+  const images = recipe.recipe_images?.map(img => ({
+    id: img.id,
+    url: img.url,
+    is_featured: img.is_featured,
+  })) || [];
+  
+  // If no images have is_featured=true but we have images, mark the first as featured
+  if (images.length > 0 && !images.some(img => img.is_featured)) {
+    images[0].is_featured = true;
+  }
+  
   editForm.value = {
     id: recipe.id,
     title: recipe.title || "",
     description: recipe.description || "",
     category_id: recipe.category?.id || "",
     prep_time_minutes: recipe.prep_time_minutes || null,
-    image_url: recipe.recipe_images[0]?.url || "",
+    images: images,
     ingredients: recipe.recipe_ingredients.map(i => ({ ...i })),
     steps: recipe.recipe_steps.map(s => ({ ...s })),
   };
@@ -402,10 +501,11 @@ function closeEditModal() {
     description: "",
     category_id: "",
     prep_time_minutes: null,
-    image_url: "",
+    images: [],
     ingredients: [],
     steps: [],
   };
+  newEditImageUrl.value = '';
   editError.value = "";
 }
 
@@ -523,28 +623,39 @@ async function submitEdit() {
       });
     }
 
-    // 5. Handle image update if needed
-    if (editForm.value.image_url) {
-      // Delete existing featured image
-      await $fetch("http://localhost:8080/v1/graphql", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-hasura-admin-secret": "myadminsecretkey",
-        },
-        body: JSON.stringify({
-          query: `
-            mutation DeleteFeaturedImage($recipe_id: uuid!) {
-              delete_recipe_images(where: { recipe_id: { _eq: $recipe_id }, is_featured: { _eq: true } }) {
-                affected_rows
-              }
+    // 5. Handle recipe images
+    // First validate that at least one image is marked as featured if we have images
+    if (editForm.value.images.length > 0 && !hasEditFeaturedImage.value) {
+      throw new Error("Please select a featured image for the recipe thumbnail");
+    }
+    
+    // Delete all existing images
+    await $fetch("http://localhost:8080/v1/graphql", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-hasura-admin-secret": "myadminsecretkey",
+      },
+      body: JSON.stringify({
+        query: `
+          mutation DeleteAllImages($recipe_id: uuid!) {
+            delete_recipe_images(where: { recipe_id: { _eq: $recipe_id } }) {
+              affected_rows
             }
-          `,
-          variables: { recipe_id: recipeId },
-        }),
-      });
+          }
+        `,
+        variables: { recipe_id: recipeId },
+      }),
+    });
 
-      // Insert new featured image
+    // Insert new images if available
+    if (editForm.value.images.length > 0) {
+      const imagesData = editForm.value.images.map(image => ({
+        recipe_id: recipeId,
+        url: image.url,
+        is_featured: image.is_featured,
+      }));
+
       await $fetch("http://localhost:8080/v1/graphql", {
         method: "POST",
         headers: {
@@ -553,19 +664,15 @@ async function submitEdit() {
         },
         body: JSON.stringify({
           query: `
-            mutation InsertImage($object: recipe_images_insert_input!) {
-              insert_recipe_images_one(object: $object) {
-                id
+            mutation InsertImages($objects: [recipe_images_insert_input!]!) {
+              insert_recipe_images(objects: $objects) {
+                returning {
+                  id
+                }
               }
             }
           `,
-          variables: {
-            object: {
-              recipe_id: recipeId,
-              url: editForm.value.image_url,
-              is_featured: true,
-            },
-          },
+          variables: { objects: imagesData },
         }),
       });
     }

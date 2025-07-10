@@ -75,20 +75,71 @@
       </div>
 
       <div>
-        <label
-          for="image_url"
-          class="block text-sm font-medium text-gray-700 mb-2"
-        >
-          Image URL (optional)
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          Recipe Images
         </label>
-        <Field
-          name="image_url"
-          type="url"
-          id="image_url"
-          class="w-full border border-gray-300 rounded-md shadow-sm p-3"
-          placeholder="https://example.com/image.jpg"
-        />
-        <ErrorMessage name="image_url" class="text-red-500 text-sm mt-1" />
+        <div class="mb-4">
+          <div class="flex flex-wrap gap-4 mb-2">
+            <div 
+              v-for="(image, index) in images" 
+              :key="index" 
+              class="relative border rounded-md p-1 w-32 h-32"
+            >
+              <img 
+                v-if="image.url" 
+                :src="image.url" 
+                alt="Recipe image" 
+                class="w-full h-full object-cover rounded"
+              />
+              <div class="absolute top-1 right-1 flex gap-1">
+                <button
+                  type="button"
+                  @click="setFeaturedImage(index)"
+                  class="bg-yellow-100 hover:bg-yellow-200 p-1 rounded-full"
+                  :class="{'bg-yellow-400': image.is_featured}"
+                  title="Set as featured image"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  @click="removeImage(index)"
+                  class="bg-red-100 hover:bg-red-200 p-1 rounded-full"
+                  title="Remove image"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            
+            <!-- Add new image -->
+            <div class="border border-dashed rounded-md p-1 w-32 h-32 flex flex-col items-center justify-center">
+              <div class="text-center">
+                <div class="text-gray-500 mb-1">Add Image</div>
+                <input
+                  v-model="newImageUrl"
+                  type="text"
+                  placeholder="Image URL"
+                  class="w-full border border-gray-300 rounded p-1 text-xs"
+                />
+                <button
+                  type="button"
+                  @click="addImage"
+                  class="mt-1 text-xs bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600"
+                >
+                  Add
+                </button>
+              </div>
+            </div>
+          </div>
+          <div v-if="!hasFeaturedImage" class="text-yellow-600 text-sm">
+            Please select a featured image for the recipe thumbnail.
+          </div>
+        </div>
       </div>
 
       <!-- Dynamic Ingredients Section -->
@@ -192,7 +243,6 @@ definePageMeta({
 const schema = yup.object({
   title: yup.string().required("Recipe title is required"),
   description: yup.string().required("Description is required"),
-  image_url: yup.string().url("Must be a valid URL").optional(),
   prep_time_minutes: yup.number().positive("Must be a positive number").optional(),
 });
 
@@ -207,6 +257,40 @@ const categories = computed(() => categoriesData.value?.categories || []);
 // Dynamic ingredients and steps
 const ingredients = ref([{ name: '', quantity: '' }]);
 const steps = ref([{ description: '' }]);
+const images = ref([]);
+const newImageUrl = ref('');
+const hasFeaturedImage = computed(() => images.value.some(img => img.is_featured));
+
+function addImage() {
+  if (!newImageUrl.value.trim()) return;
+  
+  // Add the new image
+  const isFirstImage = images.value.length === 0;
+  images.value.push({
+    url: newImageUrl.value.trim(),
+    is_featured: isFirstImage // First image is automatically set as featured
+  });
+  
+  // Clear input
+  newImageUrl.value = '';
+}
+
+function removeImage(index) {
+  const wasFeaturendImage = images.value[index].is_featured;
+  images.value.splice(index, 1);
+  
+  // If we removed the featured image and we still have other images, set the first one as featured
+  if (wasFeaturendImage && images.value.length > 0) {
+    images.value[0].is_featured = true;
+  }
+}
+
+function setFeaturedImage(index) {
+  // Unmark all images as featured
+  images.value.forEach(img => img.is_featured = false);
+  // Mark the selected image as featured
+  images.value[index].is_featured = true;
+}
 
 function addIngredient() {
   ingredients.value.push({ name: '', quantity: '' });
@@ -324,8 +408,19 @@ async function handleSubmit(values) {
       }),
     });
 
-    // Step 4: Create featured image if provided
-    if (values.image_url) {
+    // Step 4: Add recipe images if provided
+    if (images.value.length > 0) {
+      // Validate that at least one image is marked as featured
+      if (!hasFeaturedImage.value) {
+        throw new Error("Please select a featured image for the recipe thumbnail");
+      }
+
+      const imagesData = images.value.map(image => ({
+        recipe_id: newRecipeId,
+        url: image.url,
+        is_featured: image.is_featured,
+      }));
+
       await $fetch("http://localhost:8080/v1/graphql", {
         method: "POST",
         headers: {
@@ -334,19 +429,15 @@ async function handleSubmit(values) {
         },
         body: JSON.stringify({
           query: `
-            mutation InsertImage($object: recipe_images_insert_input!) {
-              insert_recipe_images_one(object: $object) {
-                id
+            mutation InsertImages($objects: [recipe_images_insert_input!]!) {
+              insert_recipe_images(objects: $objects) {
+                returning {
+                  id
+                }
               }
             }
           `,
-          variables: {
-            object: {
-              recipe_id: newRecipeId,
-              url: values.image_url,
-              is_featured: true,
-            },
-          },
+          variables: { objects: imagesData },
         }),
       });
     }

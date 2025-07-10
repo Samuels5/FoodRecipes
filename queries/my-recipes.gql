@@ -8,8 +8,10 @@ query GetMyRecipes($user_id: uuid!) {
     category {
       name
     }
-    recipe_images(where: { is_featured: { _eq: true } }, limit: 1) {
+    recipe_images {
+      id
       url
+      is_featured
     }
     recipe_ingredients {
       id
