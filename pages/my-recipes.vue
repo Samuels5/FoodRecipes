@@ -89,6 +89,11 @@
                 recipe.recipe_comments_aggregate?.aggregate?.count || 0
               "
             />
+            <RecipeRating
+              :recipe-id="recipe.id"
+              :display-mode="true"
+              :size="'small'"
+            />
           </div>
           <div class="mb-2">
             <strong>Ingredients:</strong>
@@ -412,6 +417,7 @@ import GetCategoriesQuery from "~/queries/categories.gql";
 import { useImageUpload } from "~/composables/useImageUpload";
 import RecipeLikes from "~/components/RecipeLikes.vue";
 import RecipeComments from "~/components/RecipeComments.vue";
+import RecipeRating from "~/components/RecipeRating.vue";
 
 definePageMeta({
   middleware: "auth",

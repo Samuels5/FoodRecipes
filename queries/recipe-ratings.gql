@@ -1,0 +1,80 @@
+# Add/Update a rating for a recipe
+mutation RateRecipe($recipe_id: uuid!, $user_id: uuid!, $rating: Int!) {
+  insert_recipe_ratings_one(
+    object: { recipe_id: $recipe_id, user_id: $user_id, rating: $rating }
+    on_conflict: {
+      constraint: recipe_ratings_user_id_recipe_id_key
+      update_columns: [rating, updated_at]
+    }
+  ) {
+    id
+    rating
+    created_at
+    updated_at
+    user {
+      username
+    }
+  }
+}
+
+# Remove a rating
+mutation RemoveRating($recipe_id: uuid!, $user_id: uuid!) {
+  delete_recipe_ratings(
+    where: { recipe_id: { _eq: $recipe_id }, user_id: { _eq: $user_id } }
+  ) {
+    affected_rows
+  }
+}
+
+# Check user's rating for a recipe
+query GetUserRating($recipe_id: uuid!, $user_id: uuid!) {
+  recipe_ratings(
+    where: { recipe_id: { _eq: $recipe_id }, user_id: { _eq: $user_id } }
+  ) {
+    id
+    rating
+    created_at
+    updated_at
+  }
+}
+
+# Get rating statistics for a recipe
+query GetRecipeRatingStats($recipe_id: uuid!) {
+  recipe_ratings_aggregate(where: { recipe_id: { _eq: $recipe_id } }) {
+    aggregate {
+      count
+      avg {
+        rating
+      }
+      sum {
+        rating
+      }
+    }
+  }
+
+  # Get rating distribution (count per star level)
+  rating_distribution: recipe_ratings_aggregate(
+    where: { recipe_id: { _eq: $recipe_id } }
+  ) {
+    nodes {
+      rating
+    }
+  }
+}
+
+# Get all ratings for a recipe with user details
+query GetRecipeRatings($recipe_id: uuid!) {
+  recipe_ratings(
+    where: { recipe_id: { _eq: $recipe_id } }
+    order_by: { created_at: desc }
+  ) {
+    id
+    rating
+    created_at
+    updated_at
+    user {
+      id
+      username
+    }
+  }
+}

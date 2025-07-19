@@ -36,5 +36,13 @@ query GetAllRecipes {
         count
       }
     }
+    recipe_ratings_aggregate {
+      aggregate {
+        count
+        avg {
+          rating
+        }
+      }
+    }
   }
 }

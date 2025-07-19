@@ -34,5 +34,13 @@ query GetMyRecipes($user_id: uuid!) {
         count
       }
     }
+    recipe_ratings_aggregate {
+      aggregate {
+        count
+        avg {
+          rating
+        }
+      }
+    }
   }
 }

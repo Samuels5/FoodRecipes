@@ -167,6 +167,11 @@
               recipe.recipe_comments_aggregate?.aggregate?.count || 0
             "
           />
+          <RecipeRating
+            :recipe-id="recipe.id"
+            :display-mode="true"
+            :size="'small'"
+          />
         </div>
       </NuxtLink>
     </div>
@@ -178,6 +183,7 @@ import GetAllRecipes from "~/queries/recipes.gql";
 import GetCategoriesQuery from "~/queries/categories.gql";
 import RecipeLikes from "~/components/RecipeLikes.vue";
 import RecipeComments from "~/components/RecipeComments.vue";
+import RecipeRating from "~/components/RecipeRating.vue";
 
 const { data, pending, error } = await useAsyncQuery(GetAllRecipes);
 const { data: categoriesData } = await useAsyncQuery(GetCategoriesQuery);

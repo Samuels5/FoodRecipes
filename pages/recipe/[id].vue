@@ -226,6 +226,16 @@
         </div>
       </div>
 
+      <!-- Rating Section -->
+      <div class="mt-6 bg-gray-50 p-6 rounded-lg">
+        <h3 class="text-lg font-semibold mb-4">Rate this Recipe</h3>
+        <RecipeRating
+          :recipe-id="recipeId"
+          :display-mode="false"
+          :size="'large'"
+        />
+      </div>
+
       <!-- Comments Section -->
       <div class="mt-12">
         <div class="flex items-center justify-between mb-6">
@@ -396,6 +406,7 @@ import {
   DeleteComment,
   GetRecipeComments,
 } from "~/queries/recipe-comments.gql";
+import RecipeRating from "~/components/RecipeRating.vue";
 
 const route = useRoute();
 const recipeId = route.params.id;
