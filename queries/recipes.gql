@@ -31,5 +31,10 @@ query GetAllRecipes {
         count
       }
     }
+    recipe_comments_aggregate {
+      aggregate {
+        count
+      }
+    }
   }
 }

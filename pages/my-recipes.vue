@@ -80,8 +80,15 @@
               </span>
             </div>
           </div>
-          <div class="flex items-center text-sm mb-2">
-            <RecipeLikes :like-count="recipe.recipe_likes_aggregate?.aggregate?.count || 0" />
+          <div class="flex justify-between items-center text-sm mb-2">
+            <RecipeLikes
+              :like-count="recipe.recipe_likes_aggregate?.aggregate?.count || 0"
+            />
+            <RecipeComments
+              :comment-count="
+                recipe.recipe_comments_aggregate?.aggregate?.count || 0
+              "
+            />
           </div>
           <div class="mb-2">
             <strong>Ingredients:</strong>
@@ -404,6 +411,7 @@ import UpdateRecipeMutation from "~/queries/update-recipe-basic.gql";
 import GetCategoriesQuery from "~/queries/categories.gql";
 import { useImageUpload } from "~/composables/useImageUpload";
 import RecipeLikes from "~/components/RecipeLikes.vue";
+import RecipeComments from "~/components/RecipeComments.vue";
 
 definePageMeta({
   middleware: "auth",

@@ -1,0 +1,69 @@
+# Add a comment to a recipe
+mutation AddComment(
+  $recipe_id: uuid!
+  $user_id: uuid!
+  $comment_text: String!
+) {
+  insert_recipe_comments_one(
+    object: {
+      recipe_id: $recipe_id
+      user_id: $user_id
+      comment_text: $comment_text
+    }
+  ) {
+    id
+    comment_text
+    created_at
+    user {
+      username
+    }
+  }
+}
+
+# Update a comment
+mutation UpdateComment($id: uuid!, $comment_text: String!) {
+  update_recipe_comments_by_pk(
+    pk_columns: { id: $id }
+    _set: { comment_text: $comment_text }
+  ) {
+    id
+    comment_text
+    updated_at
+    user {
+      username
+    }
+  }
+}
+
+# Delete a comment
+mutation DeleteComment($id: uuid!) {
+  delete_recipe_comments_by_pk(id: $id) {
+    id
+  }
+}
+
+# Get comments for a recipe
+query GetRecipeComments($recipe_id: uuid!) {
+  recipe_comments(
+    where: { recipe_id: { _eq: $recipe_id } }
+    order_by: { created_at: desc }
+  ) {
+    id
+    comment_text
+    created_at
+    updated_at
+    user {
+      id
+      username
+    }
+  }
+}
+
+# Get comments count for a recipe
+query GetCommentsCount($recipe_id: uuid!) {
+  recipe_comments_aggregate(where: { recipe_id: { _eq: $recipe_id } }) {
+    aggregate {
+      count
+    }
+  }
+}

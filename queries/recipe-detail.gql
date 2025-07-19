@@ -34,5 +34,20 @@ query GetRecipeById($id: uuid!) {
         count
       }
     }
+    recipe_comments_aggregate {
+      aggregate {
+        count
+      }
+    }
+    recipe_comments(order_by: { created_at: desc }, limit: 10) {
+      id
+      comment_text
+      created_at
+      updated_at
+      user {
+        id
+        username
+      }
+    }
   }
 }

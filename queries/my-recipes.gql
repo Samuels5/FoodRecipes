@@ -29,5 +29,10 @@ query GetMyRecipes($user_id: uuid!) {
         count
       }
     }
+    recipe_comments_aggregate {
+      aggregate {
+        count
+      }
+    }
   }
 }

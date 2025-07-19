@@ -3,12 +3,14 @@
     <h1 class="text-3xl font-bold underline mb-6">
       Welcome to the Food Recipes Website!
     </h1>
-    
+
     <!-- Search and Filter Section -->
     <div class="mb-6 bg-gray-50 p-4 rounded-lg">
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Search Recipes</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1"
+            >Search Recipes</label
+          >
           <input
             v-model="searchTerm"
             type="text"
@@ -17,7 +19,9 @@
           />
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Filter by Ingredients</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1"
+            >Filter by Ingredients</label
+          >
           <input
             v-model="ingredientFilter"
             type="text"
@@ -26,7 +30,9 @@
           />
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Sort by</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1"
+            >Sort by</label
+          >
           <select
             v-model="sortBy"
             class="w-full border border-gray-300 rounded-md shadow-sm p-2"
@@ -44,31 +50,45 @@
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Filter by Category</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1"
+            >Filter by Category</label
+          >
           <select
             v-model="selectedCategory"
             class="w-full border border-gray-300 rounded-md shadow-sm p-2"
           >
             <option value="">All Categories</option>
-            <option v-for="category in categories" :key="category.id" :value="category.id">
+            <option
+              v-for="category in categories"
+              :key="category.id"
+              :value="category.id"
+            >
               {{ category.name }}
             </option>
           </select>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Filter by Creator</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1"
+            >Filter by Creator</label
+          >
           <select
             v-model="selectedCreator"
             class="w-full border border-gray-300 rounded-md shadow-sm p-2"
           >
             <option value="">All Creators</option>
-            <option v-for="creator in uniqueCreators" :key="creator.id" :value="creator.id">
+            <option
+              v-for="creator in uniqueCreators"
+              :key="creator.id"
+              :value="creator.id"
+            >
               {{ creator.username }}
             </option>
           </select>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Filter by Prep Time</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1"
+            >Filter by Prep Time</label
+          >
           <select
             v-model="selectedPrepTime"
             class="w-full border border-gray-300 rounded-md shadow-sm p-2"
@@ -91,7 +111,8 @@
           Clear All Filters
         </button>
         <div class="text-sm text-gray-600 flex items-center">
-          Showing {{ filteredRecipes.length }} of {{ data?.recipes?.length || 0 }} recipes
+          Showing {{ filteredRecipes.length }} of
+          {{ data?.recipes?.length || 0 }} recipes
         </div>
       </div>
     </div>
@@ -109,25 +130,43 @@
         class="border p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer block"
       >
         <img
-          :src="recipe.recipe_images[0]?.url || 'https://via.placeholder.com/400x300?text=Recipe+Image'"
+          :src="
+            recipe.recipe_images[0]?.url ||
+            'https://via.placeholder.com/400x300?text=Recipe+Image'
+          "
           alt="Recipe image"
           class="mb-2 w-full h-48 object-cover rounded"
         />
         <h2 class="text-xl font-bold mb-2">{{ recipe.title }}</h2>
         <p class="text-gray-600 mb-2 line-clamp-2">{{ recipe.description }}</p>
-        <div class="flex justify-between items-center text-sm text-gray-500 mb-2">
+        <div
+          class="flex justify-between items-center text-sm text-gray-500 mb-2"
+        >
           <span>By: {{ recipe.user?.username || "Anonymous" }}</span>
           <div class="flex gap-2">
-            <span v-if="recipe.prep_time_minutes" class="bg-orange-100 text-orange-800 px-2 py-1 rounded">
+            <span
+              v-if="recipe.prep_time_minutes"
+              class="bg-orange-100 text-orange-800 px-2 py-1 rounded"
+            >
               {{ recipe.prep_time_minutes }}min
             </span>
-            <span v-if="recipe.category" class="bg-blue-100 text-blue-800 px-2 py-1 rounded">
+            <span
+              v-if="recipe.category"
+              class="bg-blue-100 text-blue-800 px-2 py-1 rounded"
+            >
               {{ recipe.category.name }}
             </span>
           </div>
         </div>
         <div class="flex justify-between items-center text-sm">
-          <RecipeLikes :like-count="recipe.recipe_likes_aggregate?.aggregate?.count || 0" />
+          <RecipeLikes
+            :like-count="recipe.recipe_likes_aggregate?.aggregate?.count || 0"
+          />
+          <RecipeComments
+            :comment-count="
+              recipe.recipe_comments_aggregate?.aggregate?.count || 0
+            "
+          />
         </div>
       </NuxtLink>
     </div>
@@ -138,6 +177,7 @@
 import GetAllRecipes from "~/queries/recipes.gql";
 import GetCategoriesQuery from "~/queries/categories.gql";
 import RecipeLikes from "~/components/RecipeLikes.vue";
+import RecipeComments from "~/components/RecipeComments.vue";
 
 const { data, pending, error } = await useAsyncQuery(GetAllRecipes);
 const { data: categoriesData } = await useAsyncQuery(GetCategoriesQuery);
@@ -145,135 +185,150 @@ const { data: categoriesData } = await useAsyncQuery(GetCategoriesQuery);
 const categories = computed(() => categoriesData.value?.categories || []);
 
 // Reactive search and filter
-const searchTerm = ref('');
-const selectedCategory = ref('');
-const ingredientFilter = ref('');
-const selectedPrepTime = ref('');
-const sortBy = ref('newest');
+const searchTerm = ref("");
+const selectedCategory = ref("");
+const ingredientFilter = ref("");
+const selectedPrepTime = ref("");
+const sortBy = ref("newest");
 
 // Extract unique creators for the filter dropdown
-const selectedCreator = ref('');
+const selectedCreator = ref("");
 const uniqueCreators = computed(() => {
   if (!data.value?.recipes) return [];
-  
+
   const creators = new Map();
-  data.value.recipes.forEach(recipe => {
+  data.value.recipes.forEach((recipe) => {
     if (recipe.user && recipe.user.username) {
       creators.set(recipe.user_id, {
         id: recipe.user_id,
-        username: recipe.user.username
+        username: recipe.user.username,
       });
     }
   });
-  
-  return Array.from(creators.values()).sort((a, b) => a.username.localeCompare(b.username));
+
+  return Array.from(creators.values()).sort((a, b) =>
+    a.username.localeCompare(b.username)
+  );
 });
 
 const filteredRecipes = computed(() => {
   if (!data.value?.recipes) return [];
-  
+
   let recipes = data.value.recipes;
-  
+
   // Filter by search term
   if (searchTerm.value) {
-    recipes = recipes.filter(recipe => 
-      recipe.title.toLowerCase().includes(searchTerm.value.toLowerCase()) ||
-      recipe.description.toLowerCase().includes(searchTerm.value.toLowerCase())
+    recipes = recipes.filter(
+      (recipe) =>
+        recipe.title.toLowerCase().includes(searchTerm.value.toLowerCase()) ||
+        recipe.description
+          .toLowerCase()
+          .includes(searchTerm.value.toLowerCase())
     );
   }
-  
+
   // Filter by ingredients
   if (ingredientFilter.value) {
-    recipes = recipes.filter(recipe => {
-      if (!recipe.recipe_ingredients || recipe.recipe_ingredients.length === 0) {
+    recipes = recipes.filter((recipe) => {
+      if (
+        !recipe.recipe_ingredients ||
+        recipe.recipe_ingredients.length === 0
+      ) {
         return false;
       }
-      
-      const searchTerms = ingredientFilter.value.toLowerCase().split(',').map(term => term.trim());
-      
-      return searchTerms.every(searchTerm => 
-        recipe.recipe_ingredients.some(ingredient => 
+
+      const searchTerms = ingredientFilter.value
+        .toLowerCase()
+        .split(",")
+        .map((term) => term.trim());
+
+      return searchTerms.every((searchTerm) =>
+        recipe.recipe_ingredients.some((ingredient) =>
           ingredient.name.toLowerCase().includes(searchTerm)
         )
       );
     });
   }
-  
+
   // Filter by category
   if (selectedCategory.value) {
-    recipes = recipes.filter(recipe => recipe.category?.id === selectedCategory.value);
+    recipes = recipes.filter(
+      (recipe) => recipe.category?.id === selectedCategory.value
+    );
   }
-  
+
   // Filter by creator
   if (selectedCreator.value) {
-    recipes = recipes.filter(recipe => recipe.user_id === selectedCreator.value);
+    recipes = recipes.filter(
+      (recipe) => recipe.user_id === selectedCreator.value
+    );
   }
-  
+
   // Filter by prep time
   if (selectedPrepTime.value) {
-    recipes = recipes.filter(recipe => {
+    recipes = recipes.filter((recipe) => {
       const prepTime = recipe.prep_time_minutes;
-      
+
       switch (selectedPrepTime.value) {
-        case 'quick':
+        case "quick":
           return prepTime && prepTime <= 15;
-        case 'moderate':
+        case "moderate":
           return prepTime && prepTime >= 16 && prepTime <= 30;
-        case 'medium':
+        case "medium":
           return prepTime && prepTime >= 31 && prepTime <= 60;
-        case 'long':
+        case "long":
           return prepTime && prepTime >= 61 && prepTime <= 120;
-        case 'extended':
+        case "extended":
           return prepTime && prepTime > 120;
-        case 'no-time':
+        case "no-time":
           return !prepTime || prepTime === null;
         default:
           return true;
       }
     });
   }
-  
+
   // Sort recipes
   recipes = [...recipes].sort((a, b) => {
     switch (sortBy.value) {
-      case 'newest':
+      case "newest":
         return new Date(b.created_at) - new Date(a.created_at);
-      case 'oldest':
+      case "oldest":
         return new Date(a.created_at) - new Date(b.created_at);
-      case 'title':
+      case "title":
         return a.title.localeCompare(b.title);
-      case 'title_desc':
+      case "title_desc":
         return b.title.localeCompare(a.title);
-      case 'prep_time':
+      case "prep_time":
         const aTime = a.prep_time_minutes || 999999;
         const bTime = b.prep_time_minutes || 999999;
         return aTime - bTime;
-      case 'prep_time_desc':
+      case "prep_time_desc":
         const aTimeDesc = a.prep_time_minutes || 0;
         const bTimeDesc = b.prep_time_minutes || 0;
         return bTimeDesc - aTimeDesc;
-      case 'creator':
-        const aCreator = a.user?.username || 'zzz';
-        const bCreator = b.user?.username || 'zzz';
+      case "creator":
+        const aCreator = a.user?.username || "zzz";
+        const bCreator = b.user?.username || "zzz";
         return aCreator.localeCompare(bCreator);
-      case 'creator_desc':
-        const aCreatorDesc = a.user?.username || '';
-        const bCreatorDesc = b.user?.username || '';
+      case "creator_desc":
+        const aCreatorDesc = a.user?.username || "";
+        const bCreatorDesc = b.user?.username || "";
         return bCreatorDesc.localeCompare(aCreatorDesc);
       default:
         return 0;
     }
   });
-  
+
   return recipes;
 });
 
 function clearFilters() {
-  searchTerm.value = '';
-  selectedCategory.value = '';
-  selectedCreator.value = '';
-  ingredientFilter.value = '';
-  selectedPrepTime.value = '';
-  sortBy.value = 'newest';
+  searchTerm.value = "";
+  selectedCategory.value = "";
+  selectedCreator.value = "";
+  ingredientFilter.value = "";
+  selectedPrepTime.value = "";
+  sortBy.value = "newest";
 }
 </script>
