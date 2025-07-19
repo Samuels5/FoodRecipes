@@ -1,0 +1,67 @@
+# Bookmark a recipe
+mutation BookmarkRecipe($recipe_id: uuid!, $user_id: uuid!) {
+  insert_recipe_bookmarks_one(
+    object: { 
+      recipe_id: $recipe_id, 
+      user_id: $user_id 
+    },
+    on_conflict: {
+      constraint: recipe_bookmarks_user_id_recipe_id_key,
+      update_columns: []
+    }
+  ) {
+    id
+  }
+}
+
+# Remove a bookmark
+mutation UnbookmarkRecipe($recipe_id: uuid!, $user_id: uuid!) {
+  delete_recipe_bookmarks(
+    where: {
+      recipe_id: { _eq: $recipe_id },
+      user_id: { _eq: $user_id }
+    }
+  ) {
+    affected_rows
+  }
+}
+
+# Check if user has bookmarked a recipe
+query CheckUserBookmark($recipe_id: uuid!, $user_id: uuid!) {
+  recipe_bookmarks(
+    where: {
+      recipe_id: { _eq: $recipe_id },
+      user_id: { _eq: $user_id }
+    }
+  ) {
+    id
+  }
+}
+
+# Get bookmarked recipes for a user
+query GetUserBookmarks($user_id: uuid!) {
+  recipe_bookmarks(where: { user_id: { _eq: $user_id } }) {
+    recipe {
+      id
+      title
+      description
+      prep_time_minutes
+      created_at
+      user {
+        username
+      }
+      category {
+        id
+        name
+      }
+      recipe_images(where: { is_featured: { _eq: true } }, limit: 1) {
+        url
+      }
+      recipe_likes_aggregate {
+        aggregate {
+          count
+        }
+      }
+    }
+  }
+}

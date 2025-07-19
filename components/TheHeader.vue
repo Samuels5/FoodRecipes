@@ -1,12 +1,18 @@
 <template>
   <header class="bg-gray-800 text-white p-4 flex justify-between items-center">
-    <nav>
-      <NuxtLink to="/" class="text-xl font-bold mr-4">Food Recipes</NuxtLink>
+    <nav class="flex items-center space-x-4">
+      <NuxtLink to="/" class="text-xl font-bold">Food Recipes</NuxtLink>
       <NuxtLink
         v-if="isAuthenticated"
         to="/my-recipes"
         class="hover:text-gray-300"
         >My Recipes</NuxtLink
+      >
+      <NuxtLink
+        v-if="isAuthenticated"
+        to="/my-bookmarks"
+        class="hover:text-gray-300"
+        >My Bookmarks</NuxtLink
       >
     </nav>
     <nav class="space-x-4">

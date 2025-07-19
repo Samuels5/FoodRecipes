@@ -152,19 +152,53 @@
         </div>
       </div>
 
-      <!-- Like/Unlike Section -->
-      <div class="mt-6">
-        <button
-          @click="toggleLike"
-          class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition-colors"
-        >
-          <span v-if="isLikeLoading" class="loader"></span>
-          <span v-else-if="hasLiked">❤️ Liked</span>
-          <span v-else>🤍 Like</span>
-        </button>
-        <span class="text-sm text-gray-500 ml-2">
-          {{ likeCount }} {{ likeCount === 1 ? 'Like' : 'Likes' }}
-        </span>
+      <!-- Like/Bookmark Section -->
+      <div class="mt-6 flex flex-wrap gap-3">
+        <div class="flex items-center">
+          <button
+            v-if="isAuthenticated && !isOwnRecipe"
+            @click="toggleLike"
+            class="flex items-center gap-2 px-4 py-2 bg-pink-600 text-white rounded-lg shadow-md hover:bg-pink-700 transition-colors"
+            :disabled="isLikeLoading"
+          >
+            <span v-if="isLikeLoading" class="loader"></span>
+            <span v-else-if="hasLiked">❤️ Liked</span>
+            <span v-else>🤍 Like</span>
+          </button>
+          <NuxtLink 
+            v-else-if="!isAuthenticated" 
+            to="/login" 
+            class="text-blue-500 hover:underline text-sm"
+          >
+            Log in to like this recipe
+          </NuxtLink>
+          <span class="text-sm text-gray-500 ml-2" v-if="isAuthenticated">
+            {{ likeCount }} {{ likeCount === 1 ? 'Like' : 'Likes' }}
+          </span>
+        </div>
+        
+        <div class="flex items-center">
+          <button
+            v-if="isAuthenticated"
+            @click="toggleBookmark"
+            class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition-colors"
+            :disabled="isBookmarkLoading"
+          >
+            <span v-if="isBookmarkLoading" class="loader"></span>
+            <span v-else-if="isBookmarked">🔖 Saved</span>
+            <span v-else>📑 Save</span>
+          </button>
+          <NuxtLink 
+            v-else 
+            to="/login" 
+            class="text-blue-500 hover:underline text-sm"
+          >
+            Log in to bookmark this recipe
+          </NuxtLink>
+          <span class="text-sm text-gray-500 ml-2" v-if="isAuthenticated && isBookmarked">
+            Recipe saved to your bookmarks
+          </span>
+        </div>
       </div>
     </div>
   </div>
@@ -174,6 +208,7 @@
 import { useQuery, useMutation } from "@vue/apollo-composable";
 import GetRecipeByIdQuery from "~/queries/recipe-detail.gql";
 import { LikeRecipe, UnlikeRecipe, CheckUserLike } from "~/queries/recipe-likes.gql";
+import { BookmarkRecipe, UnbookmarkRecipe, CheckUserBookmark } from "~/queries/recipe-bookmarks.gql";
 
 const route = useRoute();
 const recipeId = route.params.id;
@@ -182,6 +217,8 @@ const userId = ref(getUserId());
 const hasLiked = ref(false);
 const isLikeLoading = ref(false);
 const likeCount = ref(0);
+const isBookmarked = ref(false);
+const isBookmarkLoading = ref(false);
 
 // Query recipe details
 const {
@@ -202,6 +239,10 @@ const isOwnRecipe = computed(() => {
 // Setup like/unlike mutations
 const { mutate: likeRecipeMutation } = useMutation(LikeRecipe);
 const { mutate: unlikeRecipeMutation } = useMutation(UnlikeRecipe);
+
+// Setup bookmark/unbookmark mutations
+const { mutate: bookmarkRecipeMutation } = useMutation(BookmarkRecipe);
+const { mutate: unbookmarkRecipeMutation } = useMutation(UnbookmarkRecipe);
 
 // Check if user has liked this recipe
 const checkUserLike = async () => {
@@ -225,6 +266,31 @@ const checkUserLike = async () => {
     hasLiked.value = false;
   } finally {
     isLikeLoading.value = false;
+  }
+};
+
+// Check if user has bookmarked this recipe
+const checkUserBookmark = async () => {
+  if (!isAuthenticated.value || !userId.value) {
+    isBookmarked.value = false;
+    return;
+  }
+  
+  try {
+    isBookmarkLoading.value = true;
+    const { data } = await useAsyncQuery(CheckUserBookmark, {
+      recipe_id: recipeId,
+      user_id: userId.value
+    });
+    
+    // User has bookmarked if there's at least one bookmark record
+    const recipeBookmarks = data.value?.recipe_bookmarks || [];
+    isBookmarked.value = recipeBookmarks.length > 0;
+  } catch (error) {
+    console.error("Error checking bookmark status:", error);
+    isBookmarked.value = false;
+  } finally {
+    isBookmarkLoading.value = false;
   }
 };
 
@@ -265,6 +331,41 @@ const toggleLike = async () => {
   }
 };
 
+// Toggle bookmark/unbookmark recipe
+const toggleBookmark = async () => {
+  if (!isAuthenticated.value) {
+    // Redirect to login if not authenticated
+    navigateTo('/login');
+    return;
+  }
+
+  if (!userId.value) return;
+  
+  try {
+    isBookmarkLoading.value = true;
+    
+    if (isBookmarked.value) {
+      // Unbookmark recipe
+      await unbookmarkRecipeMutation({
+        recipe_id: recipeId,
+        user_id: userId.value
+      });
+      isBookmarked.value = false;
+    } else {
+      // Bookmark recipe
+      await bookmarkRecipeMutation({
+        recipe_id: recipeId,
+        user_id: userId.value
+      });
+      isBookmarked.value = true;
+    }
+  } catch (error) {
+    console.error("Error toggling bookmark:", error);
+  } finally {
+    isBookmarkLoading.value = false;
+  }
+};
+
 // Update like count and check if user has liked when recipe data changes
 watch(() => recipe.value, (newRecipe) => {
   if (newRecipe?.recipe_likes_aggregate?.aggregate?.count !== undefined) {
@@ -274,6 +375,11 @@ watch(() => recipe.value, (newRecipe) => {
   // Check if user has liked this recipe when recipe data is loaded
   if (newRecipe && isAuthenticated.value) {
     checkUserLike();
+  }
+
+  // Check if user has bookmarked this recipe when recipe data is loaded
+  if (newRecipe && isAuthenticated.value) {
+    checkUserBookmark();
   }
 }, { immediate: true });
 
