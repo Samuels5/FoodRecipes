@@ -95,6 +95,23 @@
               :size="'small'"
             />
           </div>
+
+          <!-- Pricing Information -->
+          <div class="mb-3 pt-2 border-t">
+            <div
+              v-if="getRecipePricing(recipe)?.is_free"
+              class="text-green-600 font-medium text-sm"
+            >
+              🆓 FREE RECIPE
+            </div>
+            <div
+              v-else-if="getRecipePricing(recipe)"
+              class="text-blue-600 font-medium text-sm"
+            >
+              💰 {{ formatPrice(getRecipePricing(recipe)) }}
+            </div>
+            <div v-else class="text-gray-500 text-sm">No pricing set</div>
+          </div>
           <div class="mb-2">
             <strong>Ingredients:</strong>
             <ul class="list-disc list-inside">
@@ -848,5 +865,32 @@ async function submitEdit() {
   } finally {
     editLoading.value = false;
   }
+}
+
+// Helper function to get recipe pricing
+function getRecipePricing(recipe) {
+  // Handle both array and single object cases
+  if (Array.isArray(recipe.recipe_pricing)) {
+    return recipe.recipe_pricing?.[0] || null;
+  } else {
+    // Handle single object case
+    return recipe.recipe_pricing || null;
+  }
+}
+
+// Helper function to format price with discount
+function formatPrice(pricing) {
+  if (!pricing || pricing.is_free) return "FREE";
+
+  const originalPrice = parseFloat(pricing.price);
+  const discount = parseFloat(pricing.discount_percentage) || 0;
+  const currency = pricing.currency || "ETB";
+
+  if (discount > 0) {
+    const finalPrice = originalPrice * (1 - discount / 100);
+    return `${finalPrice.toFixed(2)} ${currency} (${discount}% off)`;
+  }
+
+  return `${originalPrice.toFixed(2)} ${currency}`;
 }
 </script>

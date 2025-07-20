@@ -269,19 +269,130 @@
         </button>
       </div>
 
+      <!-- Pricing Section -->
+      <div class="border-t pt-6">
+        <h3 class="text-lg font-medium text-gray-700 mb-4">Recipe Pricing</h3>
+
+        <div class="space-y-4">
+          <!-- Free/Paid Toggle -->
+          <div>
+            <label class="flex items-center">
+              <input
+                type="checkbox"
+                v-model="isFreeRecipe"
+                class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+              />
+              <span class="ml-2 text-sm text-gray-700"
+                >Make this recipe free</span
+              >
+            </label>
+          </div>
+
+          <!-- Pricing fields (shown only if not free) -->
+          <div
+            v-if="!isFreeRecipe"
+            class="grid grid-cols-1 md:grid-cols-2 gap-4"
+          >
+            <div>
+              <label
+                for="price"
+                class="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Price (ETB)
+              </label>
+              <input
+                v-model="recipePrice"
+                type="number"
+                id="price"
+                min="1"
+                step="0.01"
+                class="w-full border border-gray-300 rounded-md shadow-sm p-3"
+                placeholder="e.g., 100.00"
+              />
+            </div>
+
+            <div>
+              <label
+                for="currency"
+                class="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Currency
+              </label>
+              <select
+                v-model="recipeCurrency"
+                id="currency"
+                class="w-full border border-gray-300 rounded-md shadow-sm p-3"
+              >
+                <option value="ETB">Ethiopian Birr (ETB)</option>
+                <option value="USD">US Dollar (USD)</option>
+                <option value="EUR">Euro (EUR)</option>
+              </select>
+            </div>
+
+            <div class="md:col-span-2">
+              <label
+                for="discount_percentage"
+                class="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Discount Percentage (optional)
+              </label>
+              <input
+                v-model="discountPercentage"
+                type="number"
+                id="discount_percentage"
+                min="0"
+                max="100"
+                step="0.01"
+                class="w-full border border-gray-300 rounded-md shadow-sm p-3"
+                placeholder="e.g., 10 (for 10% discount)"
+              />
+              <p class="text-xs text-gray-500 mt-1">
+                Enter a number between 0-100 for discount percentage
+              </p>
+            </div>
+          </div>
+
+          <!-- Price preview -->
+          <div
+            v-if="!isFreeRecipe && pricePreview"
+            class="bg-gray-50 p-3 rounded-md"
+          >
+            <h4 class="text-sm font-medium text-gray-700 mb-2">
+              Price Preview:
+            </h4>
+            <div class="text-sm text-gray-600">
+              <div v-if="pricePreview.hasDiscount">
+                <span class="line-through">{{
+                  pricePreview.originalPrice
+                }}</span>
+                <span class="text-green-600 font-medium ml-2">{{
+                  pricePreview.finalPrice
+                }}</span>
+                <span class="text-xs text-gray-500 ml-2"
+                  >({{ pricePreview.discountPercent }}% off)</span
+                >
+              </div>
+              <div v-else>
+                <span class="font-medium">{{ pricePreview.finalPrice }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="flex gap-4">
         <button
           type="submit"
           class="bg-blue-500 text-white py-3 px-6 rounded-md hover:bg-blue-600 flex-1"
           :disabled="isSubmitting"
-          :class="{'opacity-70 cursor-not-allowed': isSubmitting}"
+          :class="{ 'opacity-70 cursor-not-allowed': isSubmitting }"
         >
-          {{ isSubmitting ? 'Creating Recipe...' : 'Create Recipe' }}
+          {{ isSubmitting ? "Creating Recipe..." : "Create Recipe" }}
         </button>
         <NuxtLink
           to="/my-recipes"
           class="bg-gray-500 text-white py-3 px-6 rounded-md hover:bg-gray-600 text-center flex-1"
-          :class="{'pointer-events-none opacity-50': isSubmitting}"
+          :class="{ 'pointer-events-none opacity-50': isSubmitting }"
           :tabindex="isSubmitting ? -1 : undefined"
         >
           Cancel
@@ -296,6 +407,7 @@ import { Form, Field, ErrorMessage } from "vee-validate";
 import * as yup from "yup";
 import { useMutation, useQuery } from "@vue/apollo-composable";
 import CreateRecipeMutation from "~/queries/create-recipe.gql";
+import { AddRecipePricing } from "~/queries/recipe-payments.gql";
 import GetCategoriesQuery from "~/queries/categories.gql";
 import { useImageUpload } from "~/composables/useImageUpload";
 
@@ -310,10 +422,19 @@ const schema = yup.object({
     .number()
     .positive("Must be a positive number")
     .optional(),
+  is_free: yup.boolean().default(true),
+  price: yup.number().optional(),
+  currency: yup.string().optional(),
+  discount_percentage: yup
+    .number()
+    .min(0, "Discount cannot be negative")
+    .max(100, "Discount cannot exceed 100%")
+    .optional(),
 });
 
 const router = useRouter();
 const { mutate: createRecipe } = useMutation(CreateRecipeMutation);
+const { mutate: addRecipePricing } = useMutation(AddRecipePricing);
 const { getUserId } = useAuth();
 const { processImageFile } = useImageUpload();
 
@@ -327,8 +448,43 @@ const steps = ref([{ description: "" }]);
 const images = ref([]);
 const newImageUrl = ref("");
 const isSubmitting = ref(false); // Define isSubmitting state for upload loading indicator
+
+// Pricing related variables
+const isFreeRecipe = ref(true);
+const recipePrice = ref(0);
+const recipeCurrency = ref("ETB");
+const discountPercentage = ref(0);
+
 const hasFeaturedImage = computed(() =>
   images.value.some((img) => img.is_featured)
+);
+
+// Price preview calculation
+const pricePreview = computed(() => {
+  if (isFreeRecipe.value || !recipePrice.value) return null;
+
+  const originalPrice = parseFloat(recipePrice.value);
+  const discount = parseFloat(discountPercentage.value) || 0;
+  const hasDiscount = discount > 0;
+  const finalPrice = hasDiscount
+    ? originalPrice * (1 - discount / 100)
+    : originalPrice;
+
+  return {
+    originalPrice: `${originalPrice.toFixed(2)} ${recipeCurrency.value}`,
+    finalPrice: `${finalPrice.toFixed(2)} ${recipeCurrency.value}`,
+    discountPercent: discount,
+    hasDiscount,
+  };
+});
+
+// Watch for form field changes to update price preview
+watch(
+  [isFreeRecipe, recipePrice, recipeCurrency, discountPercentage],
+  () => {
+    // This will trigger the computed property update
+  },
+  { deep: true }
 );
 
 function addImage() {
@@ -436,6 +592,8 @@ async function handleSubmit(values) {
   try {
     isSubmitting.value = true; // Set submitting state when starting form submission
     console.log("Submitting recipe:", values);
+    console.log("Free recipe?", isFreeRecipe.value);
+    console.log("Recipe price:", recipePrice.value);
 
     const userId = getUserId();
     if (!userId) {
@@ -444,17 +602,33 @@ async function handleSubmit(values) {
       return;
     }
 
+    // Validate pricing if recipe is not free
+    if (!isFreeRecipe.value) {
+      if (!recipePrice.value || parseFloat(recipePrice.value) <= 0) {
+        alert("Please enter a valid price for paid recipes.");
+        isSubmitting.value = false;
+        return;
+      }
+      if (!recipeCurrency.value) {
+        alert("Please select a currency for paid recipes.");
+        isSubmitting.value = false;
+        return;
+      }
+    }
+
     // Validate ingredients and steps
     const validIngredients = ingredients.value.filter((ing) => ing.name.trim());
     const validSteps = steps.value.filter((step) => step.description.trim());
 
     if (validIngredients.length === 0) {
       alert("Please add at least one ingredient.");
+      isSubmitting.value = false;
       return;
     }
 
     if (validSteps.length === 0) {
       alert("Please add at least one cooking step.");
+      isSubmitting.value = false;
       return;
     }
 
@@ -566,6 +740,28 @@ async function handleSubmit(values) {
           variables: { objects: imagesData },
         }),
       });
+    }
+
+    // Step 5: Add recipe pricing
+    try {
+      const pricingData = {
+        recipe_id: newRecipeId,
+        price: isFreeRecipe.value ? 0 : parseFloat(recipePrice.value || 0),
+        currency: recipeCurrency.value || "ETB",
+        is_free: isFreeRecipe.value,
+        discount_percentage: discountPercentage.value
+          ? parseFloat(discountPercentage.value)
+          : 0,
+      };
+
+      console.log("Adding pricing data:", pricingData);
+      await addRecipePricing(pricingData);
+    } catch (pricingError) {
+      console.warn(
+        "Failed to add pricing, but recipe was created:",
+        pricingError
+      );
+      // Don't fail the entire operation if pricing fails
     }
 
     alert("Recipe created successfully!");

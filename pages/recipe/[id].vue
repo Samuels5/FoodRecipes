@@ -226,6 +226,17 @@
         </div>
       </div>
 
+      <!-- Purchase Section -->
+      <div v-if="recipePricing && !recipePricing.is_free" class="mt-6">
+        <PurchaseButton
+          :recipe-id="recipeId"
+          :recipe-title="recipe.title"
+          :price="recipePricing.price"
+          :currency="recipePricing.currency"
+          :discount-percentage="recipePricing.discount_percentage"
+        />
+      </div>
+
       <!-- Rating Section -->
       <div class="mt-6 bg-gray-50 p-6 rounded-lg">
         <h3 class="text-lg font-semibold mb-4">Rate this Recipe</h3>
@@ -407,6 +418,7 @@ import {
   GetRecipeComments,
 } from "~/queries/recipe-comments.gql";
 import RecipeRating from "~/components/RecipeRating.vue";
+import PurchaseButton from "~/components/PurchaseButton.vue";
 
 const route = useRoute();
 const recipeId = route.params.id;
@@ -439,6 +451,11 @@ const {
 });
 
 const recipe = computed(() => data.value?.recipes_by_pk);
+
+// Get recipe pricing information
+const recipePricing = computed(() => {
+  return recipe.value?.recipe_pricing?.[0] || null;
+});
 
 // Check if this recipe belongs to the current user
 const isOwnRecipe = computed(() => {

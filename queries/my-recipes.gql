@@ -42,5 +42,12 @@ query GetMyRecipes($user_id: uuid!) {
         }
       }
     }
+    recipe_pricing {
+      id
+      price
+      currency
+      is_free
+      discount_percentage
+    }
   }
 }

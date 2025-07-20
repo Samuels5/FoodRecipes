@@ -1,0 +1,217 @@
+# Add pricing to a recipe
+mutation AddRecipePricing(
+  $recipe_id: uuid!
+  $price: numeric!
+  $currency: String
+  $is_free: Boolean
+  $discount_percentage: numeric
+) {
+  insert_recipe_pricing_one(
+    object: {
+      recipe_id: $recipe_id
+      price: $price
+      currency: $currency
+      is_free: $is_free
+      discount_percentage: $discount_percentage
+    }
+    on_conflict: {
+      constraint: recipe_pricing_recipe_unique
+      update_columns: [
+        price
+        currency
+        is_free
+        discount_percentage
+        updated_at
+      ]
+    }
+  ) {
+    id
+    recipe_id
+    price
+    currency
+    is_free
+    discount_percentage
+  }
+}
+
+# Update recipe pricing
+mutation UpdateRecipePricing(
+  $recipe_id: uuid!
+  $price: numeric!
+  $currency: String
+  $is_free: Boolean
+  $discount_percentage: numeric
+) {
+  update_recipe_pricing(
+    where: { recipe_id: { _eq: $recipe_id } }
+    _set: {
+      price: $price
+      currency: $currency
+      is_free: $is_free
+      discount_percentage: $discount_percentage
+      updated_at: "now()"
+    }
+  ) {
+    returning {
+      id
+      recipe_id
+      price
+      currency
+      is_free
+      discount_percentage
+    }
+  }
+}
+
+# Record a purchase transaction
+mutation RecordPurchase(
+  $recipe_id: uuid!
+  $buyer_id: uuid!
+  $transaction_id: String!
+  $amount: numeric!
+  $currency: String
+  $payment_status: String
+  $payment_method: String
+  $chapa_tx_ref: String
+  $chapa_response_data: jsonb
+) {
+  insert_recipe_purchases_one(
+    object: {
+      recipe_id: $recipe_id
+      buyer_id: $buyer_id
+      transaction_id: $transaction_id
+      amount: $amount
+      currency: $currency
+      payment_status: $payment_status
+      payment_method: $payment_method
+      chapa_tx_ref: $chapa_tx_ref
+      chapa_response_data: $chapa_response_data
+    }
+  ) {
+    id
+    transaction_id
+    amount
+    currency
+    payment_status
+    created_at
+  }
+}
+
+# Update purchase status
+mutation UpdatePurchaseStatus(
+  $transaction_id: String!
+  $payment_status: String!
+  $chapa_response_data: jsonb
+) {
+  update_recipe_purchases(
+    where: { transaction_id: { _eq: $transaction_id } }
+    _set: {
+      payment_status: $payment_status
+      chapa_response_data: $chapa_response_data
+      updated_at: "now()"
+    }
+  ) {
+    returning {
+      id
+      transaction_id
+      payment_status
+      updated_at
+    }
+  }
+}
+
+# Check if user has purchased a recipe
+query CheckUserPurchase($recipe_id: uuid!, $buyer_id: uuid!) {
+  recipe_purchases(
+    where: {
+      recipe_id: { _eq: $recipe_id }
+      buyer_id: { _eq: $buyer_id }
+      payment_status: { _eq: "completed" }
+    }
+  ) {
+    id
+    transaction_id
+    amount
+    currency
+    payment_status
+    created_at
+  }
+}
+
+# Get recipe pricing
+query GetRecipePricing($recipe_id: uuid!) {
+  recipe_pricing(where: { recipe_id: { _eq: $recipe_id } }) {
+    id
+    price
+    currency
+    is_free
+    discount_percentage
+  }
+}
+
+# Get user's purchases
+query GetUserPurchases($buyer_id: uuid!) {
+  recipe_purchases(
+    where: {
+      buyer_id: { _eq: $buyer_id }
+      payment_status: { _eq: "completed" }
+    }
+    order_by: { created_at: desc }
+  ) {
+    id
+    transaction_id
+    amount
+    currency
+    payment_status
+    created_at
+    recipe {
+      id
+      title
+      description
+      user {
+        username
+      }
+      recipe_images(where: { is_featured: { _eq: true } }, limit: 1) {
+        url
+      }
+    }
+  }
+}
+
+# Get recipe purchases (for recipe owners)
+query GetRecipePurchases($recipe_id: uuid!) {
+  recipe_purchases(
+    where: {
+      recipe_id: { _eq: $recipe_id }
+      payment_status: { _eq: "completed" }
+    }
+    order_by: { created_at: desc }
+  ) {
+    id
+    transaction_id
+    amount
+    currency
+    created_at
+    buyer: user {
+      id
+      username
+    }
+  }
+}
+
+# Get purchase statistics for a recipe
+query GetRecipePurchaseStats($recipe_id: uuid!) {
+  recipe_purchases_aggregate(
+    where: {
+      recipe_id: { _eq: $recipe_id }
+      payment_status: { _eq: "completed" }
+    }
+  ) {
+    aggregate {
+      count
+      sum {
+        amount
+      }
+    }
+  }
+}

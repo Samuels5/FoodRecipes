@@ -44,5 +44,12 @@ query GetAllRecipes {
         }
       }
     }
+    recipe_pricing {
+      id
+      price
+      currency
+      is_free
+      discount_percentage
+    }
   }
 }

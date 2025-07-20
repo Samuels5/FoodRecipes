@@ -102,6 +102,20 @@
             <option value="no-time">No time specified</option>
           </select>
         </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1"
+            >Filter by Price</label
+          >
+          <select
+            v-model="selectedPriceFilter"
+            class="w-full border border-gray-300 rounded-md shadow-sm p-2"
+          >
+            <option value="">All Prices</option>
+            <option value="free">Free Only</option>
+            <option value="paid">Paid Only</option>
+            <option value="discounted">Discounted</option>
+          </select>
+        </div>
       </div>
       <div class="mt-4 flex gap-2">
         <button
@@ -173,6 +187,23 @@
             :size="'small'"
           />
         </div>
+
+        <!-- Pricing Information -->
+        <div class="mt-3 pt-3 border-t">
+          <div
+            v-if="getRecipePricing(recipe)?.is_free"
+            class="text-green-600 font-medium text-sm"
+          >
+            🆓 FREE RECIPE
+          </div>
+          <div
+            v-else-if="getRecipePricing(recipe)"
+            class="text-blue-600 font-medium text-sm"
+          >
+            💰 {{ formatPrice(getRecipePricing(recipe)) }}
+          </div>
+          <div v-else class="text-gray-500 text-sm">No pricing info</div>
+        </div>
       </NuxtLink>
     </div>
   </div>
@@ -195,6 +226,7 @@ const searchTerm = ref("");
 const selectedCategory = ref("");
 const ingredientFilter = ref("");
 const selectedPrepTime = ref("");
+const selectedPriceFilter = ref("");
 const sortBy = ref("newest");
 
 // Extract unique creators for the filter dropdown
@@ -294,6 +326,24 @@ const filteredRecipes = computed(() => {
     });
   }
 
+  // Filter by price
+  if (selectedPriceFilter.value) {
+    recipes = recipes.filter((recipe) => {
+      const pricing = getRecipePricing(recipe);
+
+      switch (selectedPriceFilter.value) {
+        case "free":
+          return !pricing || pricing.is_free;
+        case "paid":
+          return pricing && !pricing.is_free;
+        case "discounted":
+          return pricing && !pricing.is_free && pricing.discount_percentage > 0;
+        default:
+          return true;
+      }
+    });
+  }
+
   // Sort recipes
   recipes = [...recipes].sort((a, b) => {
     switch (sortBy.value) {
@@ -335,6 +385,34 @@ function clearFilters() {
   selectedCreator.value = "";
   ingredientFilter.value = "";
   selectedPrepTime.value = "";
+  selectedPriceFilter.value = "";
   sortBy.value = "newest";
+}
+
+// Helper function to get recipe pricing
+function getRecipePricing(recipe) {
+  // Handle both array and single object cases
+  if (Array.isArray(recipe.recipe_pricing)) {
+    return recipe.recipe_pricing?.[0] || null;
+  } else {
+    // Handle single object case
+    return recipe.recipe_pricing || null;
+  }
+}
+
+// Helper function to format price with discount
+function formatPrice(pricing) {
+  if (!pricing || pricing.is_free) return "FREE";
+
+  const originalPrice = parseFloat(pricing.price);
+  const discount = parseFloat(pricing.discount_percentage) || 0;
+  const currency = pricing.currency || "ETB";
+
+  if (discount > 0) {
+    const finalPrice = originalPrice * (1 - discount / 100);
+    return `${finalPrice.toFixed(2)} ${currency} (${discount}% off)`;
+  }
+
+  return `${originalPrice.toFixed(2)} ${currency}`;
 }
 </script>
