@@ -1,54 +1,62 @@
 export const useAuth = () => {
   const authToken = useCookie("auth-token");
 
+  const user = ref(null);
+
   const isAuthenticated = computed(() => {
-    console.log("Checking authentication, token exists:", !!authToken.value);
     return !!authToken.value;
   });
 
   const getUserId = () => {
     if (!authToken.value) {
-      console.log("No auth token found");
       return null;
     }
-
     try {
-      // Decode JWT payload (base64)
       const payload = authToken.value.split(".")[1];
       const decodedPayload = JSON.parse(atob(payload));
-
-      console.log("Decoded JWT payload:", decodedPayload);
-
-      // Extract user ID from Hasura claims
       const hasuraClaims = decodedPayload["https://hasura.io/jwt/claims"];
-      console.log("Hasura claims:", hasuraClaims);
-
       const userId = hasuraClaims?.["x-hasura-user-id"] || null;
-      console.log("Extracted user ID:", userId);
-
       return userId;
     } catch (error) {
-      console.error("Error decoding JWT:", error);
       return null;
     }
   };
 
-  const login = (token: string, user?: any) => {
-    console.log("Login function called with token:", token);
-    console.log("User data:", user);
-    
-    // Store the JWT token
+  // Optionally, decode user info from JWT
+  const updateUserFromToken = () => {
+    if (!authToken.value) {
+      user.value = null;
+      return;
+    }
+    try {
+      const payload = authToken.value.split(".")[1];
+      const decodedPayload = JSON.parse(atob(payload));
+      user.value = decodedPayload;
+    } catch (error) {
+      user.value = null;
+    }
+  };
+
+  // Watch for changes to authToken and update user
+  if (process.client) {
+    updateUserFromToken();
+    // If you use Vue's watch, you can add:
+    // watch(authToken, updateUserFromToken);
+  }
+
+  const login = (token: string, userData?: any) => {
     authToken.value = token;
-    
-    console.log("Token stored, isAuthenticated should now be:", !!token);
+    updateUserFromToken();
   };
 
   const logout = () => {
     authToken.value = null;
+    user.value = null;
   };
 
   return {
     isAuthenticated,
+    user,
     getUserId,
     login,
     logout,

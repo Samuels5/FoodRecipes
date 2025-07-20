@@ -109,6 +109,33 @@
             Log in to like this recipe
           </NuxtLink>
         </div>
+
+        <!-- Pricing and Purchase Section -->
+        <div v-if="recipePricing" class="mt-6 p-4 bg-gray-50 rounded-lg">
+          <div v-if="recipePricing.is_free" class="text-center">
+            <div class="text-green-600 font-bold text-lg mb-2">
+              🆓 FREE RECIPE
+            </div>
+            <p class="text-gray-600 text-sm">
+              This recipe is available for free!
+            </p>
+          </div>
+          <div v-else class="text-center">
+            <div class="text-blue-600 font-bold text-lg mb-2">
+              💰 {{ formatPriceDisplay(recipePricing) }}
+            </div>
+            <PurchaseButton
+              v-if="!isOwnRecipe"
+              :recipe-id="recipe.id"
+              :price="parseFloat(recipePricing.price)"
+              :recipe-title="recipe.title"
+              :currency="recipePricing.currency"
+            />
+            <p v-else class="text-gray-600 text-sm italic">
+              This is your own recipe
+            </p>
+          </div>
+        </div>
       </div>
 
       <!-- Featured Image -->
@@ -719,6 +746,22 @@ function formatDate(dateString) {
     month: "long",
     day: "numeric",
   });
+}
+
+// Helper function to format price with discount
+function formatPriceDisplay(pricing) {
+  if (!pricing || pricing.is_free) return "FREE";
+
+  const originalPrice = parseFloat(pricing.price);
+  const discount = parseFloat(pricing.discount_percentage) || 0;
+  const currency = pricing.currency || "ETB";
+
+  if (discount > 0) {
+    const finalPrice = originalPrice * (1 - discount / 100);
+    return `${finalPrice.toFixed(2)} ${currency} (${discount}% off)`;
+  }
+
+  return `${originalPrice.toFixed(2)} ${currency}`;
 }
 
 // SEO

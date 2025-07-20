@@ -1,10 +1,9 @@
+import { ref, readonly } from "vue";
+
 // Chapa Payment Service
 export class ChapaPaymentService {
   constructor() {
-    this.baseURL = "https://api.chapa.co/v1";
-    // In production, store this in environment variables
-    this.secretKey =
-      process.env.CHAPA_SECRET_KEY || "CHASECK_TEST-your-test-secret-key";
+    this.baseURL = "http://localhost:8081/chapa-payment"; // Use Go backend proxy
   }
 
   /**
@@ -13,46 +12,14 @@ export class ChapaPaymentService {
    * @returns {Promise<Object>} - Payment initialization response
    */
   async initializePayment(paymentData) {
-    const {
-      amount,
-      currency = "ETB",
-      email,
-      first_name,
-      last_name,
-      phone_number,
-      tx_ref,
-      callback_url,
-      return_url,
-      description,
-      customization = {},
-    } = paymentData;
-
-    const payload = {
-      amount: parseFloat(amount),
-      currency,
-      email,
-      first_name,
-      last_name,
-      phone_number,
-      tx_ref,
-      callback_url,
-      return_url,
-      description,
-      customization: {
-        title: customization.title || "Recipe Purchase",
-        description: customization.description || description,
-        logo: customization.logo || "https://your-logo-url.com/logo.png",
-      },
-    };
-
+    // Send paymentData directly to Go backend proxy
     try {
-      const response = await fetch(`${this.baseURL}/transaction/initialize`, {
+      const response = await fetch(this.baseURL, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${this.secretKey}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(paymentData),
       });
 
       const data = await response.json();
@@ -153,13 +120,21 @@ export class ChapaPaymentService {
 // Composable for using Chapa payment service
 export const useChapaPayment = () => {
   const chapaService = new ChapaPaymentService();
+  const loading = ref(false);
+  const error = ref("");
 
-  const initializePayment = async (paymentData) => {
+  const initializePayment = async (paymentData, recipeId, userId) => {
     try {
+      loading.value = true;
+      error.value = "";
+
       const result = await chapaService.initializePayment(paymentData);
-      return result;
-    } catch (error) {
-      throw error;
+      return result.checkout_url;
+    } catch (err) {
+      error.value = err.message;
+      throw err;
+    } finally {
+      loading.value = false;
     }
   };
 
@@ -167,8 +142,8 @@ export const useChapaPayment = () => {
     try {
       const result = await chapaService.verifyPayment(tx_ref);
       return result;
-    } catch (error) {
-      throw error;
+    } catch (err) {
+      throw err;
     }
   };
 
@@ -190,5 +165,7 @@ export const useChapaPayment = () => {
     generateTxRef,
     formatAmount,
     generateUrls,
+    loading: readonly(loading),
+    error: readonly(error),
   };
 };
