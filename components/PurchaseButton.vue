@@ -59,21 +59,23 @@ const handlePurchase = async () => {
     const urls = generateUrls(baseUrl, props.recipeId, txRef);
 
     const paymentData = {
-      amount: formattedAmount,
-      currency: props.currency,
-      email: user.value.email,
-      first_name: user.value.first_name || user.value.username || "Customer",
+      amount: Math.max(formattedAmount, 1), // Ensure minimum 1 ETB for test
+      currency: "ETB", // Force ETB for test mode
+      email: user.value.email || "testuser@gmail.com",
+      first_name: user.value.first_name || user.value.username || "Test",
       last_name: user.value.last_name || "User",
-      phone_number: user.value.phone_number || "",
+      phone_number: user.value.phone_number || "+251911000000", // Test phone number
       tx_ref: txRef,
       callback_url: urls.callback_url,
       return_url: urls.return_url,
-      description: `Purchase of recipe: ${props.recipeTitle}`,
+      description: `Test Purchase ${props.recipeTitle}`,
       customization: {
-        title: `Purchase ${props.recipeTitle}`,
-        description: `Payment for recipe: ${props.recipeTitle}`,
+        title: `Test Purchase ${props.recipeTitle}`,
+        description: `Test payment for recipe ${props.recipeTitle}`,
       },
     };
+
+    console.log("Payment data being sent:", paymentData);
 
     await recordPurchaseMutation({
       recipe_id: props.recipeId,
@@ -99,8 +101,17 @@ const handlePurchase = async () => {
     }
   } catch (err) {
     console.error("Payment initialization error:", err);
-    error.value =
-      err.message || "Failed to initialize payment. Please try again.";
+
+    // Handle different error types
+    if (err.message) {
+      error.value = err.message;
+    } else if (typeof err === "object" && err.error) {
+      error.value = err.error;
+    } else if (typeof err === "string") {
+      error.value = err;
+    } else {
+      error.value = "Failed to initialize payment. Please try again.";
+    }
   } finally {
     loading.value = false;
   }

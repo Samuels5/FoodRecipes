@@ -25,7 +25,12 @@ export class ChapaPaymentService {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "Payment initialization failed");
+        // Extract error message from JSON response
+        const errorMessage =
+          data.error ||
+          data.message ||
+          `HTTP ${response.status}: ${response.statusText}`;
+        throw new Error(errorMessage);
       }
 
       return {
@@ -35,7 +40,7 @@ export class ChapaPaymentService {
       };
     } catch (error) {
       console.error("Chapa payment initialization error:", error);
-      throw new Error(`Payment initialization failed: ${error.message}`);
+      throw error; // Re-throw the original error
     }
   }
 
