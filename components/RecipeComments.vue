@@ -1,8 +1,10 @@
 <template>
-  <div class="flex items-center text-xs text-gray-600">
+  <div
+    class="flex items-center text-sm text-gray-600 hover:text-orange-600 transition-colors"
+  >
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      class="h-4 w-4 text-blue-500 mr-1"
+      class="h-4 w-4 text-blue-500 mr-1.5"
       viewBox="0 0 20 20"
       fill="currentColor"
     >
@@ -14,7 +16,7 @@
         d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z"
       />
     </svg>
-    {{ commentCount }} {{ commentCount === 1 ? "comment" : "comments" }}
+    <span class="font-medium">{{ commentCount }}</span>
   </div>
 </template>
 

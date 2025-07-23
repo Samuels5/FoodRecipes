@@ -88,15 +88,15 @@ const sizeClass = computed(() => {
 }
 
 .star-filled {
-  color: #fbbf24; /* yellow-400 */
+  color: #f97316; /* orange-500 */
 }
 
 .star:not(.star-filled):not(.star-readonly) {
-  color: #d1d5db; /* gray-300 */
+  color: #fed7aa; /* orange-200 */
 }
 
 .star-hover {
-  color: #f59e0b; /* yellow-500 */
+  color: #ea580c; /* orange-600 */
   transform: scale(1.1);
 }
 

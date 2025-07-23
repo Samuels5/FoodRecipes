@@ -1,8 +1,10 @@
 <template>
-  <div class="flex items-center text-xs text-gray-600">
+  <div
+    class="flex items-center text-sm text-gray-600 hover:text-orange-600 transition-colors"
+  >
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      class="h-4 w-4 text-pink-500 mr-1"
+      class="h-4 w-4 text-red-500 mr-1.5"
       viewBox="0 0 20 20"
       fill="currentColor"
     >
@@ -12,7 +14,7 @@
         clip-rule="evenodd"
       />
     </svg>
-    {{ likeCount }} {{ likeCount === 1 ? "like" : "likes" }}
+    <span class="font-medium">{{ likeCount }}</span>
   </div>
 </template>
 

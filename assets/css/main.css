@@ -1,3 +1,117 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+/* Custom Color Scheme inspired by FoodWagen */
+:root {
+  --primary-orange: #ff6b35;
+  --secondary-orange: #ff8f65;
+  --light-orange: #fff5f2;
+  --dark-orange: #e55529;
+  --accent-red: #ff4444;
+  --dark-gray: #2d3748;
+  --medium-gray: #4a5568;
+  --light-gray: #f7fafc;
+  --white: #ffffff;
+  --text-dark: #2d3748;
+  --text-light: #718096;
+}
+
+/* Custom Button Styles */
+.btn-primary {
+  background-color: rgb(249 115 22);
+  color: white;
+  font-weight: 600;
+  padding: 0.5rem 1.5rem;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.btn-primary:hover {
+  background-color: rgb(234 88 12);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.btn-secondary {
+  background-color: white;
+  color: rgb(249 115 22);
+  font-weight: 600;
+  padding: 0.5rem 1.5rem;
+  border-radius: 0.5rem;
+  border: 2px solid rgb(249 115 22);
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+  background-color: rgb(249 250 251);
+}
+
+/* Hero Section */
+.hero-gradient {
+  background: linear-gradient(135deg, #ff6b35 0%, #ff8f65 100%);
+}
+
+/* Card hover effects */
+.card-hover {
+  transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* Food delivery style search */
+.search-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+}
+
+/* Status badges */
+.status-open {
+  background-color: #dcfce7;
+  color: #166534;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.status-closed {
+  background-color: #fee2e2;
+  color: #991b1b;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* Price badge styling */
+.price-badge {
+  background-color: rgb(249 115 22);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+}
+
+/* Navigation improvements */
+.nav-link {
+  color: #4b5563;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.nav-link:hover {
+  color: rgb(249 115 22);
+}
+
+.nav-link-active {
+  color: rgb(249 115 22);
+  font-weight: 600;
+}
