@@ -1,6 +1,7 @@
 <template>
-  <div class="max-w-2xl mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold mb-6">Create New Recipe</h1>
+  <div class="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 flex items-center justify-center py-12">
+    <div class="max-w-2xl w-full mx-auto bg-white rounded-2xl shadow-lg border border-orange-100 p-8">
+      <h1 class="text-3xl md:text-4xl font-bold mb-8 text-orange-600 text-center">Create New Recipe</h1>
 
     <Form @submit="handleSubmit" :validation-schema="schema" class="space-y-6">
       <div>
@@ -399,6 +400,7 @@
         </NuxtLink>
       </div>
     </Form>
+  </div>
   </div>
 </template>
 

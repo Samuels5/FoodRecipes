@@ -1,7 +1,8 @@
 <template>
-  <div class="container mx-auto px-4 py-8">
-    <div class="flex justify-between items-center mb-6">
-      <h1 class="text-3xl font-bold">My Recipes</h1>
+  <div class="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 py-12">
+    <div class="container mx-auto px-4">
+      <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl md:text-4xl font-bold text-orange-600">My Recipes</h1>
       <div class="flex gap-4 items-center">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1"
@@ -421,6 +422,7 @@
         <div v-if="editError" class="text-red-500 mt-2">{{ editError }}</div>
       </form>
     </div>
+  </div>
   </div>
 </template>
 

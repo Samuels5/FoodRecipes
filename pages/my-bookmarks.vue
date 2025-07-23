@@ -1,6 +1,7 @@
 <template>
-  <div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold mb-6">My Bookmarked Recipes</h1>
+  <div class="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 py-12">
+    <div class="container mx-auto px-4">
+      <h1 class="text-3xl md:text-4xl font-bold mb-8 text-orange-600 text-center">My Bookmarked Recipes</h1>
 
     <div v-if="pending" class="text-center py-8">
       <p class="text-lg">Loading your bookmarks...</p>
@@ -103,6 +104,7 @@
       </div>
     </div>
   </div>
+    </div>
 </template>
 
 <script setup>

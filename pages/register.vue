@@ -1,6 +1,7 @@
 <template>
-  <div class="max-w-md mx-auto mt-8">
-    <h1 class="text-2xl font-bold mb-4">Register</h1>
+  <div class="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 flex items-center justify-center py-12">
+    <div class="max-w-md w-full mx-auto bg-white rounded-2xl shadow-lg border border-orange-100 p-8">
+      <h1 class="text-3xl md:text-4xl font-bold mb-8 text-orange-600 text-center">Register</h1>
     <Form @submit="handleSubmit" :validation-schema="schema" class="space-y-4">
       <div>
         <label for="username" class="block text-sm font-medium text-gray-700"
@@ -48,6 +49,7 @@
         Register
       </button>
     </Form>
+  </div>
   </div>
 </template>
 
