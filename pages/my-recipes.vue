@@ -2,434 +2,438 @@
   <div class="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 py-12">
     <div class="container mx-auto px-4">
       <div class="flex justify-between items-center mb-8">
-        <h1 class="text-3xl md:text-4xl font-bold text-orange-600">My Recipes</h1>
-      <div class="flex gap-4 items-center">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1"
-            >Sort by</label
+        <h1 class="text-3xl md:text-4xl font-bold text-orange-600">
+          My Recipes
+        </h1>
+        <div class="flex gap-4 items-center">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Sort by</label
+            >
+            <select
+              v-model="sortBy"
+              class="border border-gray-300 rounded-md shadow-sm p-2"
+            >
+              <option value="newest">Newest First</option>
+              <option value="oldest">Oldest First</option>
+              <option value="title">Title A-Z</option>
+              <option value="title_desc">Title Z-A</option>
+              <option value="prep_time">Prep Time (Shortest)</option>
+              <option value="prep_time_desc">Prep Time (Longest)</option>
+            </select>
+          </div>
+          <NuxtLink
+            to="/create-recipe"
+            class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 mt-6"
           >
-          <select
-            v-model="sortBy"
-            class="border border-gray-300 rounded-md shadow-sm p-2"
-          >
-            <option value="newest">Newest First</option>
-            <option value="oldest">Oldest First</option>
-            <option value="title">Title A-Z</option>
-            <option value="title_desc">Title Z-A</option>
-            <option value="prep_time">Prep Time (Shortest)</option>
-            <option value="prep_time_desc">Prep Time (Longest)</option>
-          </select>
+            Create New Recipe
+          </NuxtLink>
         </div>
+      </div>
+
+      <div v-if="pending" class="text-center py-8">
+        <p>Loading your recipes...</p>
+      </div>
+
+      <div v-else-if="error" class="text-center py-8 text-red-500">
+        <p>Error loading recipes: {{ error.message }}</p>
+      </div>
+
+      <div v-else-if="!filteredRecipes?.length" class="text-center py-8">
+        <p class="text-gray-500 mb-4">You haven't created any recipes yet.</p>
         <NuxtLink
           to="/create-recipe"
-          class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 mt-6"
+          class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
         >
-          Create New Recipe
+          Create Your First Recipe
         </NuxtLink>
       </div>
-    </div>
 
-    <div v-if="pending" class="text-center py-8">
-      <p>Loading your recipes...</p>
-    </div>
-
-    <div v-else-if="error" class="text-center py-8 text-red-500">
-      <p>Error loading recipes: {{ error.message }}</p>
-    </div>
-
-    <div v-else-if="!filteredRecipes?.length" class="text-center py-8">
-      <p class="text-gray-500 mb-4">You haven't created any recipes yet.</p>
-      <NuxtLink
-        to="/create-recipe"
-        class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
-      >
-        Create Your First Recipe
-      </NuxtLink>
-    </div>
-
-    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div
-        v-for="recipe in filteredRecipes"
-        :key="recipe.id"
-        class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200"
-      >
-        <img
-          :src="
-            recipe.recipe_images[0]?.url ||
-            'https://via.placeholder.com/400x300?text=Recipe+Image'
-          "
-          :alt="recipe.title"
-          class="w-full h-48 object-cover"
-        />
-        <div class="p-6">
-          <h3 class="text-xl font-semibold mb-2">{{ recipe.title }}</h3>
-          <p class="text-gray-600 mb-2 line-clamp-2">
-            {{ recipe.description }}
-          </p>
-          <div
-            class="flex justify-between items-center text-sm text-gray-500 mb-2"
-          >
-            <span
-              >Category: {{ recipe.category?.name || "Uncategorized" }}</span
+      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div
+          v-for="recipe in filteredRecipes"
+          :key="recipe.id"
+          class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200"
+        >
+          <img
+            :src="
+              recipe.recipe_images[0]?.url ||
+              'https://via.placeholder.com/400x300?text=Recipe+Image'
+            "
+            :alt="recipe.title"
+            class="w-full h-48 object-cover"
+          />
+          <div class="p-6">
+            <h3 class="text-xl font-semibold mb-2">{{ recipe.title }}</h3>
+            <p class="text-gray-600 mb-2 line-clamp-2">
+              {{ recipe.description }}
+            </p>
+            <div
+              class="flex justify-between items-center text-sm text-gray-500 mb-2"
             >
-            <div class="flex gap-2">
               <span
-                v-if="recipe.prep_time_minutes"
-                class="bg-orange-100 text-orange-800 px-2 py-1 rounded"
+                >Category: {{ recipe.category?.name || "Uncategorized" }}</span
               >
-                {{ recipe.prep_time_minutes }}min
-              </span>
-            </div>
-          </div>
-          <div class="flex justify-between items-center text-sm mb-2">
-            <RecipeLikes
-              :like-count="recipe.recipe_likes_aggregate?.aggregate?.count || 0"
-            />
-            <RecipeComments
-              :comment-count="
-                recipe.recipe_comments_aggregate?.aggregate?.count || 0
-              "
-            />
-            <RecipeRating
-              :recipe-id="recipe.id"
-              :display-mode="true"
-              :size="'small'"
-            />
-          </div>
-
-          <!-- Pricing Information -->
-          <div class="mb-3 pt-2 border-t">
-            <div
-              v-if="getRecipePricing(recipe)?.is_free"
-              class="text-green-600 font-medium text-sm"
-            >
-              🆓 FREE RECIPE
-            </div>
-            <div
-              v-else-if="getRecipePricing(recipe)"
-              class="text-blue-600 font-medium text-sm"
-            >
-              💰 {{ formatPrice(getRecipePricing(recipe)) }}
-            </div>
-            <div v-else class="text-gray-500 text-sm">No pricing set</div>
-          </div>
-          <div class="mb-2">
-            <strong>Ingredients:</strong>
-            <ul class="list-disc list-inside">
-              <li
-                v-for="ingredient in recipe.recipe_ingredients"
-                :key="ingredient.id"
-              >
-                {{ ingredient.name
-                }}<span v-if="ingredient.quantity">
-                  ({{ ingredient.quantity }})</span
+              <div class="flex gap-2">
+                <span
+                  v-if="recipe.prep_time_minutes"
+                  class="bg-orange-100 text-orange-800 px-2 py-1 rounded"
                 >
-              </li>
-            </ul>
-          </div>
-          <div class="mb-2">
-            <strong>Steps:</strong>
-            <ol class="list-decimal list-inside">
-              <li v-for="step in recipe.recipe_steps" :key="step.id">
-                {{ step.description }}
-              </li>
-            </ol>
-          </div>
-          <div class="flex gap-2 mt-4">
-            <NuxtLink
-              :to="`/recipe/${recipe.id}`"
-              class="text-green-500 hover:text-green-700 px-3 py-1 rounded border border-green-500 hover:bg-green-50"
-            >
-              View
-            </NuxtLink>
-            <button
-              v-if="recipe.user_id === userId"
-              class="text-blue-500 hover:text-blue-700 px-3 py-1 rounded border border-blue-500 hover:bg-blue-50"
-              @click="startEdit(recipe)"
-            >
-              Edit
-            </button>
-            <button
-              v-if="recipe.user_id === userId"
-              class="text-red-500 hover:text-red-700 px-3 py-1 rounded border border-red-500 hover:bg-red-50"
-              @click="confirmDelete(recipe)"
-              :disabled="deletingId === recipe.id"
-            >
-              <span v-if="deletingId === recipe.id">Deleting...</span>
-              <span v-else>Delete</span>
-            </button>
+                  {{ recipe.prep_time_minutes }}min
+                </span>
+              </div>
+            </div>
+            <div class="flex justify-between items-center text-sm mb-2">
+              <RecipeLikes
+                :like-count="
+                  recipe.recipe_likes_aggregate?.aggregate?.count || 0
+                "
+              />
+              <RecipeComments
+                :comment-count="
+                  recipe.recipe_comments_aggregate?.aggregate?.count || 0
+                "
+              />
+              <RecipeRating
+                :recipe-id="recipe.id"
+                :display-mode="true"
+                :size="'small'"
+              />
+            </div>
+
+            <!-- Pricing Information -->
+            <div class="mb-3 pt-2 border-t">
+              <div
+                v-if="getRecipePricing(recipe)?.is_free"
+                class="text-green-600 font-medium text-sm"
+              >
+                🆓 FREE RECIPE
+              </div>
+              <div
+                v-else-if="getRecipePricing(recipe)"
+                class="text-blue-600 font-medium text-sm"
+              >
+                💰 {{ formatPrice(getRecipePricing(recipe)) }}
+              </div>
+              <div v-else class="text-gray-500 text-sm">No pricing set</div>
+            </div>
+            <div class="mb-2">
+              <strong>Ingredients:</strong>
+              <ul class="list-disc list-inside">
+                <li
+                  v-for="ingredient in recipe.recipe_ingredients"
+                  :key="ingredient.id"
+                >
+                  {{ ingredient.name
+                  }}<span v-if="ingredient.quantity">
+                    ({{ ingredient.quantity }})</span
+                  >
+                </li>
+              </ul>
+            </div>
+            <div class="mb-2">
+              <strong>Steps:</strong>
+              <ol class="list-decimal list-inside">
+                <li v-for="step in recipe.recipe_steps" :key="step.id">
+                  {{ step.description }}
+                </li>
+              </ol>
+            </div>
+            <div class="flex gap-2 mt-4">
+              <NuxtLink
+                :to="`/recipe/${recipe.id}`"
+                class="text-green-500 hover:text-green-700 px-3 py-1 rounded border border-green-500 hover:bg-green-50"
+              >
+                View
+              </NuxtLink>
+              <button
+                v-if="recipe.user_id === userId"
+                class="text-blue-500 hover:text-blue-700 px-3 py-1 rounded border border-blue-500 hover:bg-blue-50"
+                @click="startEdit(recipe)"
+              >
+                Edit
+              </button>
+              <button
+                v-if="recipe.user_id === userId"
+                class="text-red-500 hover:text-red-700 px-3 py-1 rounded border border-red-500 hover:bg-red-50"
+                @click="confirmDelete(recipe)"
+                :disabled="deletingId === recipe.id"
+              >
+                <span v-if="deletingId === recipe.id">Deleting...</span>
+                <span v-else>Delete</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Edit Modal -->
-  <div
-    v-if="showEditModal"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 overflow-y-auto py-8"
-  >
+    <!-- Edit Modal -->
     <div
-      class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative my-auto mx-auto max-h-[90vh] overflow-y-auto"
+      v-if="showEditModal"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 overflow-y-auto py-8"
     >
-      <button
-        class="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
-        @click="closeEditModal"
+      <div
+        class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative my-auto mx-auto max-h-[90vh] overflow-y-auto"
       >
-        &times;
-      </button>
-      <h2 class="text-2xl font-bold mb-4">Edit Recipe</h2>
-      <form @submit.prevent="submitEdit">
-        <div class="mb-4">
-          <label class="block mb-1 font-medium">Title</label>
-          <input
-            v-model="editForm.title"
-            class="w-full border rounded px-3 py-2"
-            required
-          />
-        </div>
-        <div class="mb-4">
-          <label class="block mb-1 font-medium">Description</label>
-          <textarea
-            v-model="editForm.description"
-            class="w-full border rounded px-3 py-2"
-            required
-          ></textarea>
-        </div>
-        <div class="mb-4">
-          <label class="block mb-1 font-medium">Category</label>
-          <select
-            v-model="editForm.category_id"
-            class="w-full border rounded px-3 py-2"
-          >
-            <option value="">Select a category (optional)</option>
-            <option
-              v-for="category in categories"
-              :key="category.id"
-              :value="category.id"
+        <button
+          class="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
+          @click="closeEditModal"
+        >
+          &times;
+        </button>
+        <h2 class="text-2xl font-bold mb-4">Edit Recipe</h2>
+        <form @submit.prevent="submitEdit">
+          <div class="mb-4">
+            <label class="block mb-1 font-medium">Title</label>
+            <input
+              v-model="editForm.title"
+              class="w-full border rounded px-3 py-2"
+              required
+            />
+          </div>
+          <div class="mb-4">
+            <label class="block mb-1 font-medium">Description</label>
+            <textarea
+              v-model="editForm.description"
+              class="w-full border rounded px-3 py-2"
+              required
+            ></textarea>
+          </div>
+          <div class="mb-4">
+            <label class="block mb-1 font-medium">Category</label>
+            <select
+              v-model="editForm.category_id"
+              class="w-full border rounded px-3 py-2"
             >
-              {{ category.name }}
-            </option>
-          </select>
-        </div>
-        <div class="mb-4">
-          <label class="block mb-1 font-medium">Prep Time (minutes)</label>
-          <input
-            v-model="editForm.prep_time_minutes"
-            type="number"
-            min="1"
-            class="w-full border rounded px-3 py-2"
-            placeholder="e.g., 30"
-          />
-        </div>
-        <div class="mb-4">
-          <label class="block mb-1 font-medium">Recipe Images</label>
-          <div class="flex flex-wrap gap-2 mb-2">
-            <div
-              v-for="(image, index) in editForm.images"
-              :key="index"
-              class="relative border rounded-md p-1 w-20 h-20"
-            >
-              <img
-                v-if="image.url"
-                :src="image.url"
-                alt="Recipe image"
-                class="w-full h-full object-cover rounded"
-              />
-              <div class="absolute top-1 right-1 flex gap-1">
-                <button
-                  type="button"
-                  @click="setEditFeaturedImage(index)"
-                  class="bg-yellow-100 hover:bg-yellow-200 p-1 rounded-full"
-                  :class="{ 'bg-yellow-400': image.is_featured }"
-                  title="Set as featured image"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-3 w-3"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="{2}"
-                      d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
-                    />
-                  </svg>
-                </button>
-                <button
-                  type="button"
-                  @click="removeEditImage(index)"
-                  class="bg-red-100 hover:bg-red-200 p-1 rounded-full"
-                  title="Remove image"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-3 w-3"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="{2}"
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            <!-- Add new image -->
-            <div
-              class="border border-dashed rounded-md p-1 w-20 h-20 flex items-center justify-center"
-            >
-              <div class="text-center">
-                <div class="flex flex-col gap-1">
-                  <input
-                    v-model="newEditImageUrl"
-                    type="text"
-                    placeholder="URL"
-                    class="w-full border border-gray-300 rounded p-1 text-xs mb-1"
-                  />
+              <option value="">Select a category (optional)</option>
+              <option
+                v-for="category in categories"
+                :key="category.id"
+                :value="category.id"
+              >
+                {{ category.name }}
+              </option>
+            </select>
+          </div>
+          <div class="mb-4">
+            <label class="block mb-1 font-medium">Prep Time (minutes)</label>
+            <input
+              v-model="editForm.prep_time_minutes"
+              type="number"
+              min="1"
+              class="w-full border rounded px-3 py-2"
+              placeholder="e.g., 30"
+            />
+          </div>
+          <div class="mb-4">
+            <label class="block mb-1 font-medium">Recipe Images</label>
+            <div class="flex flex-wrap gap-2 mb-2">
+              <div
+                v-for="(image, index) in editForm.images"
+                :key="index"
+                class="relative border rounded-md p-1 w-20 h-20"
+              >
+                <img
+                  v-if="image.url"
+                  :src="image.url"
+                  alt="Recipe image"
+                  class="w-full h-full object-cover rounded"
+                />
+                <div class="absolute top-1 right-1 flex gap-1">
                   <button
                     type="button"
-                    @click="addEditImage"
-                    class="text-xs bg-blue-500 text-white px-2 py-0.5 rounded hover:bg-blue-600"
+                    @click="setEditFeaturedImage(index)"
+                    class="bg-yellow-100 hover:bg-yellow-200 p-1 rounded-full"
+                    :class="{ 'bg-yellow-400': image.is_featured }"
+                    title="Set as featured image"
                   >
-                    Add URL
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-3 w-3"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="{2}"
+                        d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                      />
+                    </svg>
                   </button>
-                  <div class="relative w-full mt-1">
+                  <button
+                    type="button"
+                    @click="removeEditImage(index)"
+                    class="bg-red-100 hover:bg-red-200 p-1 rounded-full"
+                    title="Remove image"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-3 w-3"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="{2}"
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Add new image -->
+              <div
+                class="border border-dashed rounded-md p-1 w-20 h-20 flex items-center justify-center"
+              >
+                <div class="text-center">
+                  <div class="flex flex-col gap-1">
                     <input
-                      type="file"
-                      id="upload-image"
-                      accept="image/jpeg,image/png,image/gif,image/webp,image/bmp"
-                      class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                      @change="uploadImage"
-                      :disabled="editLoading"
+                      v-model="newEditImageUrl"
+                      type="text"
+                      placeholder="URL"
+                      class="w-full border border-gray-300 rounded p-1 text-xs mb-1"
                     />
                     <button
                       type="button"
-                      class="text-xs bg-green-500 text-white px-2 py-0.5 rounded hover:bg-green-600 w-full"
-                      :class="{ 'opacity-50': editLoading }"
+                      @click="addEditImage"
+                      class="text-xs bg-blue-500 text-white px-2 py-0.5 rounded hover:bg-blue-600"
                     >
-                      {{ editLoading ? "Uploading..." : "Upload" }}
+                      Add URL
                     </button>
+                    <div class="relative w-full mt-1">
+                      <input
+                        type="file"
+                        id="upload-image"
+                        accept="image/jpeg,image/png,image/gif,image/webp,image/bmp"
+                        class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        @change="uploadImage"
+                        :disabled="editLoading"
+                      />
+                      <button
+                        type="button"
+                        class="text-xs bg-green-500 text-white px-2 py-0.5 rounded hover:bg-green-600 w-full"
+                        :class="{ 'opacity-50': editLoading }"
+                      >
+                        {{ editLoading ? "Uploading..." : "Upload" }}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
+            <div v-if="!hasEditFeaturedImage" class="text-yellow-600 text-xs">
+              Please select a featured image for the recipe thumbnail.
+            </div>
           </div>
-          <div v-if="!hasEditFeaturedImage" class="text-yellow-600 text-xs">
-            Please select a featured image for the recipe thumbnail.
-          </div>
-        </div>
 
-        <!-- Dynamic Ingredients -->
-        <div class="mb-4">
-          <label class="block mb-1 font-medium">Ingredients</label>
-          <div
-            v-for="(ingredient, index) in editForm.ingredients"
-            :key="index"
-            class="flex gap-2 mb-2"
-          >
-            <input
-              v-model="ingredient.name"
-              placeholder="Ingredient name"
-              class="flex-1 border rounded px-2 py-1"
-              required
-            />
-            <input
-              v-model="ingredient.quantity"
-              placeholder="Quantity"
-              class="w-24 border rounded px-2 py-1"
-            />
+          <!-- Dynamic Ingredients -->
+          <div class="mb-4">
+            <label class="block mb-1 font-medium">Ingredients</label>
+            <div
+              v-for="(ingredient, index) in editForm.ingredients"
+              :key="index"
+              class="flex gap-2 mb-2"
+            >
+              <input
+                v-model="ingredient.name"
+                placeholder="Ingredient name"
+                class="flex-1 border rounded px-2 py-1"
+                required
+              />
+              <input
+                v-model="ingredient.quantity"
+                placeholder="Quantity"
+                class="w-24 border rounded px-2 py-1"
+              />
+              <button
+                type="button"
+                @click="removeEditIngredient(index)"
+                class="px-2 py-1 text-red-500 border border-red-300 rounded hover:bg-red-50"
+                :disabled="editForm.ingredients.length <= 1"
+              >
+                ×
+              </button>
+            </div>
             <button
               type="button"
-              @click="removeEditIngredient(index)"
-              class="px-2 py-1 text-red-500 border border-red-300 rounded hover:bg-red-50"
-              :disabled="editForm.ingredients.length <= 1"
+              @click="addEditIngredient"
+              class="mt-1 px-3 py-1 text-blue-500 border border-blue-300 rounded hover:bg-blue-50"
             >
-              ×
+              Add Ingredient
             </button>
           </div>
-          <button
-            type="button"
-            @click="addEditIngredient"
-            class="mt-1 px-3 py-1 text-blue-500 border border-blue-300 rounded hover:bg-blue-50"
-          >
-            Add Ingredient
-          </button>
-        </div>
 
-        <!-- Dynamic Steps -->
-        <div class="mb-4">
-          <label class="block mb-1 font-medium">Cooking Steps</label>
-          <div
-            v-for="(step, index) in editForm.steps"
-            :key="index"
-            class="flex gap-2 mb-2"
-          >
-            <span
-              class="flex items-center justify-center w-6 h-6 bg-gray-200 rounded-full text-xs"
+          <!-- Dynamic Steps -->
+          <div class="mb-4">
+            <label class="block mb-1 font-medium">Cooking Steps</label>
+            <div
+              v-for="(step, index) in editForm.steps"
+              :key="index"
+              class="flex gap-2 mb-2"
             >
-              {{ index + 1 }}
-            </span>
-            <textarea
-              v-model="step.description"
-              placeholder="Step description"
-              class="flex-1 border rounded px-2 py-1"
-              rows="2"
-              required
-            ></textarea>
+              <span
+                class="flex items-center justify-center w-6 h-6 bg-gray-200 rounded-full text-xs"
+              >
+                {{ index + 1 }}
+              </span>
+              <textarea
+                v-model="step.description"
+                placeholder="Step description"
+                class="flex-1 border rounded px-2 py-1"
+                rows="2"
+                required
+              ></textarea>
+              <button
+                type="button"
+                @click="removeEditStep(index)"
+                class="px-2 py-1 text-red-500 border border-red-300 rounded hover:bg-red-50"
+                :disabled="editForm.steps.length <= 1"
+              >
+                ×
+              </button>
+            </div>
             <button
               type="button"
-              @click="removeEditStep(index)"
-              class="px-2 py-1 text-red-500 border border-red-300 rounded hover:bg-red-50"
-              :disabled="editForm.steps.length <= 1"
+              @click="addEditStep"
+              class="mt-1 px-3 py-1 text-blue-500 border border-blue-300 rounded hover:bg-blue-50"
             >
-              ×
+              Add Step
             </button>
           </div>
-          <button
-            type="button"
-            @click="addEditStep"
-            class="mt-1 px-3 py-1 text-blue-500 border border-blue-300 rounded hover:bg-blue-50"
-          >
-            Add Step
-          </button>
-        </div>
-        <div class="flex justify-end gap-2">
-          <button
-            type="button"
-            class="px-4 py-2 rounded border"
-            @click="closeEditModal"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-            :disabled="editLoading"
-          >
-            <span v-if="editLoading">Saving...</span>
-            <span v-else>Save</span>
-          </button>
-        </div>
-        <div v-if="editError" class="text-red-500 mt-2">{{ editError }}</div>
-      </form>
+          <div class="flex justify-end gap-2">
+            <button
+              type="button"
+              class="px-4 py-2 rounded border"
+              @click="closeEditModal"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+              :disabled="editLoading"
+            >
+              <span v-if="editLoading">Saving...</span>
+              <span v-else>Save</span>
+            </button>
+          </div>
+          <div v-if="editError" class="text-red-500 mt-2">{{ editError }}</div>
+        </form>
+      </div>
     </div>
-  </div>
   </div>
 </template>
 
 <script setup>
 import { ref } from "vue";
 import { useQuery, useMutation } from "@vue/apollo-composable";
-import GetMyRecipesQuery from "~/queries/my-recipes.gql";
+import GetMyRecipesAndPurchasesQuery from "~/queries/my-recipes-and-purchases.gql";
 import DeleteRecipeMutation from "~/queries/delete-recipe.gql";
 import UpdateRecipeMutation from "~/queries/update-recipe-basic.gql";
 import GetCategoriesQuery from "~/queries/categories.gql";
@@ -456,7 +460,7 @@ const {
   loading: pending,
   error,
   refetch,
-} = useQuery(GetMyRecipesQuery, { user_id: userId });
+} = useQuery(GetMyRecipesAndPurchasesQuery, { user_id: userId });
 
 // Fetch categories for dropdown
 const { result: categoriesData } = useQuery(GetCategoriesQuery);
@@ -466,12 +470,16 @@ const categories = computed(() => categoriesData.value?.categories || []);
 const sortBy = ref("newest");
 
 const filteredRecipes = computed(() => {
-  if (!data.value?.recipes) return [];
-
-  // Create a shallow copy of the array before sorting to avoid mutating the original
-  const recipes = [...data.value.recipes];
-
-  return recipes.sort((a, b) => {
+  if (!data.value) return [];
+  // Merge created and purchased recipes, avoiding duplicates
+  const created = data.value.created || [];
+  const purchased = (data.value.purchased || []).map((p) => p.recipe);
+  // Remove any purchased recipe that is also in created (by id)
+  const createdIds = new Set(created.map((r) => r.id));
+  const onlyPurchased = purchased.filter((r) => !createdIds.has(r.id));
+  const all = [...created, ...onlyPurchased];
+  // Sort
+  return all.sort((a, b) => {
     switch (sortBy.value) {
       case "newest":
         return new Date(b.created_at) - new Date(a.created_at);

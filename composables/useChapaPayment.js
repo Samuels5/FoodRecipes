@@ -22,14 +22,27 @@ export class ChapaPaymentService {
         body: JSON.stringify(paymentData),
       });
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (jsonErr) {
+        data = {};
+      }
 
       if (!response.ok) {
-        // Extract error message from JSON response
-        const errorMessage =
+        // Log the full error response for debugging
+        console.error("Chapa payment initialization error (response):", data);
+        // Try to extract a detailed error message
+        let errorMessage =
           data.error ||
           data.message ||
+          data.detail ||
+          data.status ||
           `HTTP ${response.status}: ${response.statusText}`;
+        // If the error is still an object, stringify it
+        if (typeof errorMessage === "object") {
+          errorMessage = JSON.stringify(errorMessage);
+        }
         throw new Error(errorMessage);
       }
 
@@ -39,8 +52,18 @@ export class ChapaPaymentService {
         checkout_url: data.data.checkout_url,
       };
     } catch (error) {
-      console.error("Chapa payment initialization error:", error);
-      throw error; // Re-throw the original error
+      // Log the error and any nested response if available
+      if (error && error.response) {
+        console.error(
+          "Chapa payment initialization error (catch):",
+          error,
+          error.response
+        );
+      } else {
+        console.error("Chapa payment initialization error (catch):", error);
+      }
+      // Show the most informative error message possible
+      throw new Error(error.message || error.toString());
     }
   }
 

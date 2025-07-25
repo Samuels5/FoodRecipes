@@ -58,6 +58,8 @@ const handlePurchase = async () => {
     const baseUrl = window.location.origin;
     const urls = generateUrls(baseUrl, props.recipeId, txRef);
 
+    // Chapa customization.title must not exceed 16 characters
+    const safeTitle = `Test Purchase ${props.recipeTitle}`.slice(0, 16);
     const paymentData = {
       amount: Math.max(formattedAmount, 1), // Ensure minimum 1 ETB for test
       currency: "ETB", // Force ETB for test mode
@@ -70,7 +72,7 @@ const handlePurchase = async () => {
       return_url: urls.return_url,
       description: `Test Purchase ${props.recipeTitle}`,
       customization: {
-        title: `Test Purchase ${props.recipeTitle}`,
+        title: safeTitle,
         description: `Test payment for recipe ${props.recipeTitle}`,
       },
     };

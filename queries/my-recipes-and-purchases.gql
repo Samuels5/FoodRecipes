@@ -1,0 +1,107 @@
+query GetMyRecipesAndPurchases($user_id: uuid!) {
+  created: recipes(where: { user_id: { _eq: $user_id } }) {
+    id
+    title
+    description
+    prep_time_minutes
+    created_at
+    category {
+      name
+    }
+    recipe_images {
+      id
+      url
+      is_featured
+    }
+    recipe_ingredients {
+      id
+      name
+      quantity
+    }
+    recipe_steps(order_by: { step_number: asc }) {
+      id
+      step_number
+      description
+    }
+    user_id
+    recipe_likes_aggregate {
+      aggregate {
+        count
+      }
+    }
+    recipe_comments_aggregate {
+      aggregate {
+        count
+      }
+    }
+    recipe_ratings_aggregate {
+      aggregate {
+        count
+        avg {
+          rating
+        }
+      }
+    }
+    recipe_pricing {
+      id
+      price
+      currency
+      is_free
+      discount_percentage
+    }
+  }
+  purchased: recipe_purchases(where: { buyer_id: { _eq: $user_id } }) {
+    recipe {
+      id
+      title
+      description
+      prep_time_minutes
+      created_at
+      category {
+        name
+      }
+      recipe_images {
+        id
+        url
+        is_featured
+      }
+      recipe_ingredients {
+        id
+        name
+        quantity
+      }
+      recipe_steps(order_by: { step_number: asc }) {
+        id
+        step_number
+        description
+      }
+      user_id
+      recipe_likes_aggregate {
+        aggregate {
+          count
+        }
+      }
+      recipe_comments_aggregate {
+        aggregate {
+          count
+        }
+      }
+      recipe_ratings_aggregate {
+        aggregate {
+          count
+          avg {
+            rating
+          }
+        }
+      }
+      recipe_pricing {
+        id
+        price
+        currency
+        is_free
+        discount_percentage
+      }
+    }
+    # purchased_at removed because it does not exist in the table
+  }
+}
