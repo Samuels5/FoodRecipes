@@ -456,7 +456,11 @@ const route = useRoute();
 const recipeId = route.params.id;
 const { isAuthenticated, getUserId } = useAuth();
 const userId = ref(getUserId());
-const { result: myRecipesData } = useQuery(GetMyRecipesAndPurchasesQuery, { user_id: userId.value }, { enabled: !!userId.value });
+const { result: myRecipesData } = useQuery(
+  GetMyRecipesAndPurchasesQuery,
+  { user_id: userId.value },
+  { enabled: !!userId.value }
+);
 
 const ownedRecipeIds = computed(() => {
   if (!myRecipesData.value) return new Set();
