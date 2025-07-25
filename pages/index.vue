@@ -248,6 +248,7 @@
               :price="parseFloat(getRecipePricing(recipe).price)"
               :recipe-title="recipe.title"
               :currency="getRecipePricing(recipe).currency"
+              :user-owns-recipe="userOwnsRecipe(recipe)"
             />
           </div>
           <div v-else class="text-center text-gray-400 text-sm py-2">
@@ -267,10 +268,32 @@ import RecipeLikes from "~/components/RecipeLikes.vue";
 import RecipeComments from "~/components/RecipeComments.vue";
 import RecipeRating from "~/components/RecipeRating.vue";
 
+import { useAuth } from "~/composables/useAuth";
+import { useQuery } from "@vue/apollo-composable";
+import GetMyRecipesAndPurchasesQuery from "~/queries/my-recipes-and-purchases.gql";
+
 const { data, pending, error } = await useAsyncQuery(GetAllRecipes);
 const { data: categoriesData } = await useAsyncQuery(GetCategoriesQuery);
 
 const categories = computed(() => categoriesData.value?.categories || []);
+
+// Auth and ownership
+const { getUserId } = useAuth();
+const userId = getUserId();
+const { result: myRecipesData } = useQuery(GetMyRecipesAndPurchasesQuery, { user_id: userId }, { enabled: !!userId });
+
+const ownedRecipeIds = computed(() => {
+  if (!myRecipesData.value) return new Set();
+  const created = myRecipesData.value.created || [];
+  const purchased = (myRecipesData.value.purchased || []).map((p) => p.recipe);
+  const all = [...created, ...purchased];
+  return new Set(all.map((r) => r.id));
+});
+
+function userOwnsRecipe(recipe) {
+  if (!userId) return false;
+  return ownedRecipeIds.value.has(recipe.id);
+}
 
 // Reactive search and filter
 const searchTerm = ref("");

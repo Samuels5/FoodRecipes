@@ -97,6 +97,7 @@
               :price="parseFloat(getRecipePricing(bookmark.recipe).price)"
               :recipe-title="bookmark.recipe.title"
               :currency="getRecipePricing(bookmark.recipe).currency"
+              :user-owns-recipe="userOwnsRecipe(bookmark.recipe)"
             />
           </div>
           <div v-else class="text-gray-500 text-sm">No pricing info</div>
@@ -113,12 +114,29 @@ import { GetUserBookmarks } from "~/queries/recipe-bookmarks.gql";
 import RecipeLikes from "~/components/RecipeLikes.vue";
 import RecipeComments from "~/components/RecipeComments.vue";
 
+import GetMyRecipesAndPurchasesQuery from "~/queries/my-recipes-and-purchases.gql";
+
 definePageMeta({
   middleware: "auth",
 });
 
 const { getUserId } = useAuth();
 const userId = getUserId();
+
+const { result: myRecipesData } = useQuery(GetMyRecipesAndPurchasesQuery, { user_id: userId }, { enabled: !!userId });
+
+const ownedRecipeIds = computed(() => {
+  if (!myRecipesData.value) return new Set();
+  const created = myRecipesData.value.created || [];
+  const purchased = (myRecipesData.value.purchased || []).map((p) => p.recipe);
+  const all = [...created, ...purchased];
+  return new Set(all.map((r) => r.id));
+});
+
+function userOwnsRecipe(recipe) {
+  if (!userId) return false;
+  return ownedRecipeIds.value.has(recipe.id);
+}
 
 const {
   result,

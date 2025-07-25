@@ -1,14 +1,23 @@
 <template>
   <div>
-    <button
-      @click="handlePurchase"
-      :disabled="loading"
-      class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:bg-gray-400 transition-colors"
-    >
-      <span v-if="loading">Processing...</span>
-      <span v-else>Buy Recipe for {{ price }} {{ currency }}</span>
-    </button>
-    <p v-if="error" class="text-red-500 mt-2 text-sm">{{ error }}</p>
+    <template v-if="userOwnsRecipe">
+      <div
+        class="px-4 py-2 bg-gray-200 text-gray-600 rounded text-center font-semibold"
+      >
+        You own this recipe
+      </div>
+    </template>
+    <template v-else>
+      <button
+        @click="handlePurchase"
+        :disabled="loading"
+        class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:bg-gray-400 transition-colors"
+      >
+        <span v-if="loading">Processing...</span>
+        <span v-else>Buy Recipe for {{ price }} {{ currency }}</span>
+      </button>
+      <p v-if="error" class="text-red-500 mt-2 text-sm">{{ error }}</p>
+    </template>
   </div>
 </template>
 
@@ -31,6 +40,10 @@ const props = defineProps({
   recipeTitle: {
     type: String,
     required: true,
+  },
+  userOwnsRecipe: {
+    type: Boolean,
+    default: false,
   },
 });
 

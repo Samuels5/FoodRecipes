@@ -130,6 +130,7 @@
               :price="parseFloat(recipePricing.price)"
               :recipe-title="recipe.title"
               :currency="recipePricing.currency"
+              :user-owns-recipe="userOwnsRecipe"
             />
             <p v-else class="text-gray-600 text-sm italic">
               This is your own recipe
@@ -261,6 +262,7 @@
           :price="recipePricing.price"
           :currency="recipePricing.currency"
           :discount-percentage="recipePricing.discount_percentage"
+          :user-owns-recipe="userOwnsRecipe"
         />
       </div>
 
@@ -447,10 +449,27 @@ import {
 import RecipeRating from "~/components/RecipeRating.vue";
 import PurchaseButton from "~/components/PurchaseButton.vue";
 
+import GetMyRecipesAndPurchasesQuery from "~/queries/my-recipes-and-purchases.gql";
+import { useAuth } from "~/composables/useAuth";
+
 const route = useRoute();
 const recipeId = route.params.id;
 const { isAuthenticated, getUserId } = useAuth();
 const userId = ref(getUserId());
+const { result: myRecipesData } = useQuery(GetMyRecipesAndPurchasesQuery, { user_id: userId.value }, { enabled: !!userId.value });
+
+const ownedRecipeIds = computed(() => {
+  if (!myRecipesData.value) return new Set();
+  const created = myRecipesData.value.created || [];
+  const purchased = (myRecipesData.value.purchased || []).map((p) => p.recipe);
+  const all = [...created, ...purchased];
+  return new Set(all.map((r) => r.id));
+});
+
+const userOwnsRecipe = computed(() => {
+  if (!userId.value || !recipe.value) return false;
+  return ownedRecipeIds.value.has(recipe.value.id);
+});
 const hasLiked = ref(false);
 const isLikeLoading = ref(false);
 const likeCount = ref(0);
